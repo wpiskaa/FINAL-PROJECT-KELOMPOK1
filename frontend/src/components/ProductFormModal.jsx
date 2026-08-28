@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { X, Save } from 'lucide-react';
@@ -22,119 +22,125 @@ export default function ProductFormModal({ product, categories, onClose, onSucce
   async function handleSubmit(e) {
     e.preventDefault();
     if (!form.name || !form.price) {
-      toast.error('Nama dan harga wajib diisi!');
+      toast.error('Nama dan harga menu wajib diisi!');
       return;
     }
     setLoading(true);
     try {
       if (isEdit) {
         await api.put(`/products/${product.id}`, form);
-        toast.success('Produk berhasil diperbarui!');
+        toast.success('Menu berhasil diperbarui!');
       } else {
         await api.post('/products', form);
-        toast.success('Produk berhasil ditambahkan!');
+        toast.success('Menu baru berhasil ditambahkan!');
       }
       onSuccess();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Gagal menyimpan produk');
+      toast.error(err.response?.data?.message || 'Gagal menyimpan menu');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-coffee-950/40 backdrop-blur-xs z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl animate-fadeIn"
+        className="w-full max-w-md bg-white border border-[#EAE3D9] rounded-3xl shadow-card animate-fadeIn overflow-hidden font-sans"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-6 border-b border-gray-800">
-          <h2 className="text-lg font-semibold text-gray-100">
-            {isEdit ? 'Edit Produk' : 'Tambah Produk Baru'}
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-[#F0E9DF] bg-[#FAF7F2]">
+          <h2 className="text-lg font-bold font-display text-coffee-950">
+            {isEdit ? 'Edit Menu Kopi' : 'Tambah Menu Baru'}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-100 hover:bg-gray-800 rounded-xl transition-colors"
+            className="p-2 text-coffee-500 hover:text-coffee-950 hover:bg-cream-200 rounded-xl transition-colors"
           >
             <X size={18} />
           </button>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Nama Produk *</label>
+            <label className="block text-xs font-bold text-coffee-800 mb-1.5">Nama Menu / Produk *</label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="Contoh: Cappuccino"
-              className="input-field"
+              placeholder="Contoh: Iced Hazelnut Latte"
+              className="input-field text-sm"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Harga (Rp) *</label>
+            <label className="block text-xs font-bold text-coffee-800 mb-1.5">Harga (Rp) *</label>
             <input
               name="price"
               type="number"
               value={form.price}
               onChange={handleChange}
-              placeholder="25000"
-              className="input-field"
+              placeholder="28000"
+              className="input-field text-sm"
               min={0}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Kategori</label>
-            <select name="category_id" value={form.category_id} onChange={handleChange} className="input-field">
+            <label className="block text-xs font-bold text-coffee-800 mb-1.5">Kategori Menu</label>
+            <select name="category_id" value={form.category_id} onChange={handleChange} className="input-field text-sm bg-white">
               <option value="">Pilih Kategori</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Deskripsi</label>
+            <label className="block text-xs font-bold text-coffee-800 mb-1.5">Deskripsi Manual (Opsional)</label>
             <textarea
               name="description"
               value={form.description}
               onChange={handleChange}
-              placeholder="Deskripsi produk..."
+              placeholder="Catatan singkat rasa atau komposisi..."
               rows={3}
-              className="input-field resize-none"
+              className="input-field text-sm resize-none"
             />
           </div>
 
           {isEdit && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 pt-1">
               <input
                 type="checkbox"
                 id="is_available"
                 name="is_available"
                 checked={!!form.is_available}
                 onChange={handleChange}
-                className="w-4 h-4 accent-amber-500"
+                className="w-4 h-4 accent-coffee-800 rounded"
               />
-              <label htmlFor="is_available" className="text-sm text-gray-300">Produk tersedia</label>
+              <label htmlFor="is_available" className="text-xs font-semibold text-coffee-800 cursor-pointer">
+                Menu tersedia untuk dijual
+              </label>
             </div>
           )}
 
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="btn-secondary flex-1">
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-3 border-t border-cream-200">
+            <button type="button" onClick={onClose} className="btn-secondary flex-1 py-2.5 text-xs font-semibold">
               Batal
             </button>
-            <button type="submit" disabled={loading} className="btn-primary flex-1 flex items-center justify-center gap-2">
+            <button type="submit" disabled={loading} className="btn-primary flex-1 py-2.5 text-xs flex items-center justify-center gap-2 font-bold">
               {loading ? (
-                <div className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <Save size={16} />
               )}
-              {isEdit ? 'Simpan Perubahan' : 'Tambah Produk'}
+              {isEdit ? 'Simpan Perubahan' : 'Tambah Menu'}
             </button>
           </div>
         </form>
+
       </div>
     </div>
   );

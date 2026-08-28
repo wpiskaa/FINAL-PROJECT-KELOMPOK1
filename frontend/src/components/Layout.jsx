@@ -3,18 +3,18 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
   LayoutDashboard, Coffee, ShoppingCart, History,
-  LogOut, Menu, X, Sparkles, ChevronRight, User
+  LogOut, Menu, Sparkles, ChevronRight, User
 } from 'lucide-react';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/products', icon: Coffee, label: 'Menu & Produk' },
-  { to: '/transaction', icon: ShoppingCart, label: 'Transaksi Baru' },
-  { to: '/history', icon: History, label: 'Riwayat' },
+  { to: '/products', icon: Coffee, label: 'Katalog Menu' },
+  { to: '/transaction', icon: ShoppingCart, label: 'Kasir & Transaksi' },
+  { to: '/history', icon: History, label: 'Riwayat Penjualan' },
 ];
 
 export default function Layout() {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -24,110 +24,129 @@ export default function Layout() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-950 overflow-hidden">
-      {/* Mobile overlay */}
+    <div className="flex h-screen bg-[#F7F4EF] overflow-hidden font-sans text-[#2D1C10]">
+      {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-20 lg:hidden"
+          className="fixed inset-0 bg-[#1D1208]/40 backdrop-blur-xs z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Farmaku Style Clean Left Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-30 w-64 bg-gray-900 border-r border-gray-800 
-        flex flex-col transition-transform duration-300 ease-in-out
+        fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-[#EAE3D9] 
+        flex flex-col justify-between transition-transform duration-300 ease-in-out shadow-sm
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        {/* Logo */}
-        <div className="p-6 border-b border-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
-              <Coffee size={20} className="text-gray-900" />
+        <div>
+          {/* Brand Logo Header */}
+          <div className="p-6 border-b border-[#F0E9DF]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#3A2213] rounded-2xl flex items-center justify-center shadow-md">
+                <Coffee size={20} className="text-[#F3E5D8]" />
+              </div>
+              <div>
+                <h1 className="font-bold text-lg font-display text-[#2D1C10] tracking-tight">BrewMate</h1>
+                <p className="text-[11px] text-[#6F4E2B] font-semibold">Coffee Shop POS System</p>
+              </div>
             </div>
-            <div>
-              <h1 className="font-bold text-lg font-['Outfit'] gradient-text">BrewMate</h1>
-              <p className="text-xs text-gray-500">POS System</p>
-            </div>
+          </div>
+
+          {/* Navigation Menu */}
+          <div className="p-4">
+            <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#8C6438] mb-2">Menu Utama</p>
+            <nav className="space-y-1">
+              {navItems.map(({ to, icon: Icon, label, end }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={end}
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) => `
+                    flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 font-semibold text-sm
+                    ${isActive
+                      ? 'bg-[#3A2213] text-white shadow-md shadow-black/10'
+                      : 'text-[#5C3B24] hover:text-[#2D1C10] hover:bg-[#F5F0E8]'
+                    }
+                  `}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Icon size={18} className={isActive ? 'text-[#F3E5D8]' : 'text-[#8C6438]'} />
+                      <span>{label}</span>
+                      {isActive && <ChevronRight size={14} className="ml-auto text-[#F3E5D8]" />}
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </nav>
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map(({ to, icon: Icon, label, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              onClick={() => setSidebarOpen(false)}
-              className={({ isActive }) => `
-                flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
-                ${isActive
-                  ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20'
-                  : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800'
-                }
-              `}
+        {/* Bottom Section */}
+        <div className="p-4 border-t border-[#F0E9DF] space-y-3 bg-[#FAF7F2]">
+          {/* Gemini AI Card */}
+          <div className="p-3.5 bg-[#3A2213] rounded-2xl text-white shadow-sm border border-[#5C3B24]">
+            <div className="flex items-center gap-2 mb-1">
+              <Sparkles size={14} className="text-amber-300" />
+              <span className="text-xs font-bold text-[#F3E5D8]">Gemini AI Assistant</span>
+            </div>
+            <p className="text-[11px] text-[#E8DCCF] leading-snug">Auto-generate & edit deskripsi menu kopi secara cerdas</p>
+          </div>
+
+          {/* User Profile */}
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 bg-[#EFE6D8] rounded-xl flex items-center justify-center text-[#3D2616] font-bold text-sm">
+                <User size={18} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-[#2D1C10] truncate">{user?.name || 'Kasir Coffee'}</p>
+                <p className="text-[10px] text-[#6F4E2B] capitalize font-medium">{user?.role || 'Kasir'}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-2 text-rose-700 hover:bg-rose-50 rounded-xl transition-colors"
+              title="Keluar"
             >
-              {({ isActive }) => (
-                <>
-                  <Icon size={18} className={isActive ? 'text-amber-400' : ''} />
-                  <span className="text-sm font-medium">{label}</span>
-                  {isActive && <ChevronRight size={14} className="ml-auto text-amber-400/60" />}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* AI Badge */}
-        <div className="mx-4 mb-4 p-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/20">
-          <div className="flex items-center gap-2">
-            <Sparkles size={14} className="text-amber-400" />
-            <span className="text-xs text-amber-400 font-medium">Powered by Gemini AI</span>
+              <LogOut size={16} />
+            </button>
           </div>
-          <p className="text-xs text-gray-500 mt-1">Auto-generate deskripsi menu</p>
-        </div>
-
-        {/* User section */}
-        <div className="p-4 border-t border-gray-800">
-          <div className="flex items-center gap-3 mb-3 px-2">
-            <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center">
-              <User size={15} className="text-amber-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-200 truncate">{user?.name}</p>
-              <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 text-sm font-medium"
-          >
-            <LogOut size={16} />
-            <span>Keluar</span>
-          </button>
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* Main Right Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Topbar (mobile) */}
-        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-gray-900 border-b border-gray-800">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 text-gray-400 hover:text-gray-100 hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <Menu size={20} />
-          </button>
-          <div className="flex items-center gap-2">
-            <Coffee size={18} className="text-amber-400" />
-            <span className="font-bold gradient-text font-['Outfit']">BrewMate</span>
+        {/* Top Header Bar */}
+        <header className="bg-white border-b border-[#EAE3D9] px-6 py-3.5 flex items-center justify-between gap-4 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 text-[#5C3B24] hover:text-[#2D1C10] hover:bg-[#F5F0E8] rounded-xl lg:hidden"
+            >
+              <Menu size={20} />
+            </button>
+            <div className="hidden sm:block">
+              <p className="text-xs text-[#6F4E2B] font-medium">
+                {new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())}
+              </p>
+              <h2 className="text-sm font-bold text-[#2D1C10] font-display">BrewMate Cashier Dashboard</h2>
+            </div>
           </div>
-          <div className="w-9" />
+
+          {/* Top Right Status */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-[#FAF7F2] rounded-xl border border-[#EAE3D9] text-xs font-bold text-[#3D2616]">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Sistem Kasir Aktif</span>
+            </div>
+          </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        {/* Dynamic Page Content */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           <Outlet />
         </main>
       </div>

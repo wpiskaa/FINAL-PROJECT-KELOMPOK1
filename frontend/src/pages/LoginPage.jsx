@@ -3,14 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
-import { Coffee, Eye, EyeOff, Sparkles, Lock, Mail } from 'lucide-react';
+import { Coffee, Eye, EyeOff, Lock, Mail, Sparkles, UserCheck, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [roleTab, setRoleTab] = useState('admin');
+  const [form, setForm] = useState({
+    email: 'admin@coffeeshop.com',
+    password: 'admin123'
+  });
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  function handleRoleSwitch(role) {
+    setRoleTab(role);
+    if (role === 'admin') {
+      setForm({ email: 'admin@coffeeshop.com', password: 'admin123' });
+    } else {
+      setForm({ email: 'kasir@coffeeshop.com', password: 'kasir123' });
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -33,117 +46,163 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/3 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-[#F4EFEA] flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
+      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden grid lg:grid-cols-12 min-h-[580px] border border-[#EAE3D9]">
+        
+        {/* Left Side — Dark Coffee Brand Panel (Farmaku Left Banner) */}
+        <div className="lg:col-span-6 bg-[#3A2213] text-white p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden">
+          {/* Decorative shapes */}
+          <div className="absolute -top-24 -left-24 w-80 h-80 bg-[#5C3B24] rounded-full blur-3xl opacity-50" />
+          <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-[#7C4E2D] rounded-full blur-3xl opacity-40" />
 
-      <div className="w-full max-w-md relative animate-fadeIn">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl shadow-xl shadow-amber-500/20 mb-4">
-            <Coffee size={28} className="text-gray-900" />
+          {/* Top Logo */}
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="w-11 h-11 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20 shadow-md">
+              <Coffee size={24} className="text-[#F3E5D8]" />
+            </div>
+            <div>
+              <span className="font-bold text-xl text-white tracking-wide font-display">BrewMate POS</span>
+              <p className="text-xs text-[#E4DACC]">Coffee POS & Gemini AI</p>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold font-['Outfit'] gradient-text">BrewMate POS</h1>
-          <p className="text-gray-400 mt-1 text-sm">Sistem Kasir Coffee Shop</p>
-          <div className="flex items-center justify-center gap-1.5 mt-2">
-            <Sparkles size={12} className="text-amber-400" />
-            <span className="text-xs text-amber-400/80">Powered by Gemini AI</span>
+
+          {/* Center Text */}
+          <div className="relative z-10 my-10 space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-[#F7EFE5] text-xs font-semibold">
+              <Sparkles size={14} className="text-amber-300" />
+              Powered by Google Gemini AI
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold font-display leading-tight text-white">
+              Sistem Kasir Coffee Shop Modern & Serba Otomatis.
+            </h2>
+            <p className="text-[#E8DCCF] text-sm leading-relaxed max-w-md">
+              Kelola transaksi kasir, katalog produk, dan buat deskripsi menu otomatis dengan bantuan kecerdasan buatan.
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div className="relative z-10 pt-4 border-t border-white/15 flex items-center justify-between text-xs text-[#D8C7B4]">
+            <span>© 2026 BrewMate POS — Kelompok 1</span>
+            <span>Kasir & AI System</span>
           </div>
         </div>
 
-        {/* Form card */}
-        <div className="card glow-amber">
-          <h2 className="text-xl font-semibold text-gray-100 mb-6">Masuk ke Sistem</h2>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
+        {/* Right Side — Clean White Form Panel (Farmaku Right Login) */}
+        <div className="lg:col-span-6 p-8 sm:p-12 flex flex-col justify-center bg-white">
+          <div className="max-w-sm mx-auto w-full space-y-6">
+            
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2" htmlFor="login-email">
-                Email
-              </label>
-              <div className="relative">
-                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
-                <input
-                  id="login-email"
-                  type="email"
-                  value={form.email}
-                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                  placeholder="admin@coffeeshop.com"
-                  className="input-field pl-10"
-                  autoComplete="email"
-                />
-              </div>
+              <h3 className="text-2xl font-bold text-[#2D1C10] font-display">Selamat Datang!</h3>
+              <p className="text-xs text-[#6F4E2B] mt-1 font-medium">Pilih peran akun untuk masuk ke sistem POS</p>
             </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2" htmlFor="login-password">
-                Password
-              </label>
-              <div className="relative">
-                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
-                <input
-                  id="login-password"
-                  type={showPw ? 'text' : 'password'}
-                  value={form.password}
-                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                  placeholder="••••••••"
-                  className="input-field pl-10 pr-12"
-                  autoComplete="current-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw(p => !p)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
-                >
-                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
+            {/* Farmaku Role Tab Switcher */}
+            <div className="p-1 bg-[#F5F0E8] rounded-2xl flex border border-[#E4DACC]">
+              <button
+                type="button"
+                onClick={() => handleRoleSwitch('admin')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  roleTab === 'admin'
+                    ? 'bg-[#3A2213] text-white shadow-sm'
+                    : 'text-[#5C3B24] hover:text-[#2D1C10]'
+                }`}
+              >
+                <ShieldCheck size={15} />
+                Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleSwitch('kasir')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  roleTab === 'kasir'
+                    ? 'bg-[#3A2213] text-white shadow-sm'
+                    : 'text-[#5C3B24] hover:text-[#2D1C10]'
+                }`}
+              >
+                <UserCheck size={15} />
+                Kasir
+              </button>
             </div>
 
-            <button
-              id="login-submit-btn"
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2 py-3 mt-2"
-            >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin" />
-                  <span>Memproses...</span>
-                </>
-              ) : (
-                <>
-                  <Coffee size={16} />
-                  <span>Masuk</span>
-                </>
-              )}
-            </button>
-          </form>
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-[#2D1C10] mb-1.5" htmlFor="login-email">
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C6438]" />
+                  <input
+                    id="login-email"
+                    type="email"
+                    value={form.email}
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                    placeholder="nama@coffeeshop.com"
+                    className="input-field pl-10 text-sm"
+                    autoComplete="email"
+                  />
+                </div>
+              </div>
 
-          {/* Demo credentials */}
-          <div className="mt-6 p-4 bg-gray-800/50 rounded-xl border border-gray-700/50">
-            <p className="text-xs text-gray-400 font-medium mb-2">Demo Credentials:</p>
-            <div className="space-y-1.5 text-xs text-gray-500">
-              <div className="flex justify-between">
-                <span>Admin:</span>
-                <span className="font-mono text-gray-400">admin@coffeeshop.com / admin123</span>
+              <div>
+                <label className="block text-xs font-bold text-[#2D1C10] mb-1.5" htmlFor="login-password">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C6438]" />
+                  <input
+                    id="login-password"
+                    type={showPw ? 'text' : 'password'}
+                    value={form.password}
+                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                    placeholder="••••••••"
+                    className="input-field pl-10 pr-12 text-sm"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(p => !p)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8C6438] hover:text-[#2D1C10] transition-colors"
+                  >
+                    {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>Kasir:</span>
-                <span className="font-mono text-gray-400">kasir@coffeeshop.com / kasir123</span>
+
+              <button
+                id="login-submit-btn"
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm font-bold shadow-md"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Memproses Login...</span>
+                  </>
+                ) : (
+                  <>
+                    <Coffee size={18} />
+                    <span>Masuk ke POS</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Selected Demo Account Info */}
+            <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#EAE3D9] text-xs space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-[#2D1C10]">Akun Terpilih:</span>
+                <span className="badge bg-[#EFE6D8] text-[#3D2616] font-mono text-[11px]">
+                  {roleTab === 'admin' ? 'admin@coffeeshop.com' : 'kasir@coffeeshop.com'}
+                </span>
               </div>
+              <p className="text-[11px] text-[#6F4E2B]">Password: <span className="font-mono font-bold text-[#2D1C10]">{roleTab === 'admin' ? 'admin123' : 'kasir123'}</span></p>
             </div>
+
           </div>
         </div>
 
-        <p className="text-center text-xs text-gray-600 mt-6">
-          © 2024 BrewMate POS — Kelompok 1 PAW
-        </p>
       </div>
     </div>
   );

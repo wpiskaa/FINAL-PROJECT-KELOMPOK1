@@ -1,22 +1,22 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import { formatRupiah } from '../utils/formatters';
-import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
 import {
   ShoppingCart, Plus, Minus, Trash2, Coffee, Search,
-  CreditCard, Banknote, Check, Receipt
+  CreditCard, Banknote, QrCode, Check, Printer, Receipt, PackageCheck
 } from 'lucide-react';
 
 export default function TransactionPage() {
-  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('');
+  
+  // Payment
   const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash', 'qris', 'card'
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -66,18 +66,19 @@ export default function TransactionPage() {
   }
 
   const total = cart.reduce((sum, i) => sum + i.subtotal, 0);
-  const change = parseFloat(paymentAmount) - total;
+  const effectivePayment = paymentMethod === 'cash' ? (parseFloat(paymentAmount) || 0) : total;
+  const change = Math.max(0, effectivePayment - total);
 
   async function handleCheckout() {
-    if (cart.length === 0) { toast.error('Keranjang belanja kosong!'); return; }
-    if (!paymentAmount || parseFloat(paymentAmount) < total) {
-      toast.error('Jumlah pembayaran kurang dari total!'); return;
+    if (cart.length === 0) { toast.error('Keranjang pesanan masih kosong!'); return; }
+    if (paymentMethod === 'cash' && (!paymentAmount || parseFloat(paymentAmount) < total)) {
+      toast.error('Jumlah pembayaran uang tunai kurang!'); return;
     }
     setProcessing(true);
     try {
       const res = await api.post('/transactions', {
         items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
-        payment_amount: parseFloat(paymentAmount),
+        payment_amount: effectivePayment,
         payment_method: paymentMethod,
         notes,
       });
@@ -85,7 +86,7 @@ export default function TransactionPage() {
       setCart([]);
       setPaymentAmount('');
       setNotes('');
-      toast.success('Transaksi berhasil! 🎉');
+      toast.success('Pesanan berhasil diproses! 🎉');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Transaksi gagal!');
     } finally {
@@ -93,89 +94,127 @@ export default function TransactionPage() {
     }
   }
 
+  /* Farmaku Style Receipt Success View */
   if (receipt) {
     return (
-      <div className="max-w-md mx-auto animate-fadeIn">
-        <div className="card text-center">
-          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Check size={32} className="text-green-400" />
+      <div className="max-w-md mx-auto animate-fadeIn font-sans py-6">
+        <div className="card text-center bg-white rounded-3xl p-8 border border-[#EAE3D9] shadow-card space-y-6">
+          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-700 shadow-xs">
+            <Check size={36} />
           </div>
-          <h2 className="text-2xl font-bold font-['Outfit'] text-gray-100 mb-1">Pembayaran Sukses!</h2>
-          <p className="text-gray-500 text-sm mb-6">{receipt.transaction_code}</p>
 
-          <div className="bg-gray-800/50 rounded-xl p-4 text-left space-y-2 mb-4">
+          <div>
+            <h2 className="text-2xl font-bold font-display text-coffee-950">Transaksi Selesai!</h2>
+            <p className="text-coffee-600 text-xs font-mono mt-1">{receipt.transaction_code}</p>
+          </div>
+
+          {/* Struk Details */}
+          <div className="bg-[#FAF7F2] rounded-2xl p-4 text-left space-y-3 border border-[#EBE4D8]">
+            <p className="text-xs font-bold text-coffee-900 border-b border-cream-300 pb-2">Rincian Pesanan</p>
             {receipt.items?.map((item, i) => (
-              <div key={i} className="flex justify-between text-sm">
-                <span className="text-gray-400">{item.product_name} x{item.quantity}</span>
-                <span className="text-gray-200">{formatRupiah(item.subtotal)}</span>
+              <div key={i} className="flex justify-between text-xs">
+                <span className="text-coffee-800 font-medium">{item.product_name} ×{item.quantity}</span>
+                <span className="text-coffee-950 font-bold">{formatRupiah(item.subtotal)}</span>
               </div>
             ))}
-            <div className="border-t border-gray-700 pt-2 mt-2 space-y-1">
-              <div className="flex justify-between font-semibold">
-                <span className="text-gray-300">Total</span>
-                <span className="text-gray-100">{formatRupiah(receipt.total_amount)}</span>
+            
+            <div className="border-t border-cream-300 pt-2 space-y-1 text-xs">
+              <div className="flex justify-between font-bold text-coffee-950 text-sm">
+                <span>Total Belanja</span>
+                <span className="text-coffee-800">{formatRupiah(receipt.total_amount)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Bayar</span>
-                <span className="text-gray-300">{formatRupiah(receipt.payment_amount)}</span>
+              <div className="flex justify-between text-coffee-700">
+                <span>Metode Pembayaran</span>
+                <span className="uppercase font-semibold">{receipt.payment_method}</span>
               </div>
-              <div className="flex justify-between text-sm font-semibold">
-                <span className="text-amber-400">Kembalian</span>
-                <span className="text-amber-400">{formatRupiah(receipt.change_amount)}</span>
+              <div className="flex justify-between text-coffee-700">
+                <span>Jumlah Bayar</span>
+                <span>{formatRupiah(receipt.payment_amount)}</span>
+              </div>
+              <div className="flex justify-between font-bold text-emerald-700">
+                <span>Kembalian</span>
+                <span>{formatRupiah(receipt.change_amount)}</span>
               </div>
             </div>
           </div>
 
-          <button
-            id="new-transaction-btn"
-            onClick={() => setReceipt(null)}
-            className="btn-primary w-full flex items-center justify-center gap-2"
-          >
-            <Receipt size={16} />
-            Transaksi Baru
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => window.print()}
+              className="btn-secondary flex-1 py-2.5 text-xs flex items-center justify-center gap-1.5"
+            >
+              <Printer size={15} /> Cetak Struk
+            </button>
+            <button
+              id="new-transaction-btn"
+              onClick={() => setReceipt(null)}
+              className="btn-primary flex-1 py-2.5 text-xs flex items-center justify-center gap-1.5"
+            >
+              <Receipt size={15} /> Pesanan Baru
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="animate-fadeIn h-full">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold font-['Outfit'] text-gray-100">Transaksi Baru</h1>
-        <p className="text-gray-500 text-sm mt-1">Pilih menu dan proses pembayaran</p>
-      </div>
-
-      <div className="grid lg:grid-cols-5 gap-6 h-full">
-        {/* Product selection */}
-        <div className="lg:col-span-3 space-y-4">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+    <div className="animate-fadeIn font-sans h-full">
+      
+      {/* Farmaku Style Grid Layout: Left Catalog (3 cols) vs Right Order Summary (2 cols) */}
+      <div className="grid lg:grid-cols-12 gap-6 items-start">
+        
+        {/* Left Catalog Area (7 cols) */}
+        <div className="lg:col-span-7 space-y-4">
+          
+          {/* Top Search & Category Filters */}
+          <div className="space-y-3">
+            <div className="relative">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-coffee-400" />
               <input
                 type="text"
-                placeholder="Cari menu..."
+                placeholder="Cari menu kopi untuk transaksi..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="input-field pl-9 text-sm"
+                className="input-field pl-10 text-sm bg-white shadow-2xs"
               />
             </div>
-            <select
-              value={filterCat}
-              onChange={e => setFilterCat(e.target.value)}
-              className="input-field w-auto text-sm"
-            >
-              <option value="">Semua</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+
+            {/* Category Tabs */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              <button
+                onClick={() => setFilterCat('')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap border ${
+                  filterCat === ''
+                    ? 'bg-coffee-800 text-white border-coffee-800 shadow-xs'
+                    : 'bg-white text-coffee-700 border-[#EAE3D9] hover:bg-cream-100'
+                }`}
+              >
+                Semua
+              </button>
+              {categories.map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => setFilterCat(c.id.toString())}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap border ${
+                    filterCat === c.id.toString()
+                      ? 'bg-coffee-800 text-white border-coffee-800 shadow-xs'
+                      : 'bg-white text-coffee-700 border-[#EAE3D9] hover:bg-cream-100'
+                  }`}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
           </div>
 
+          {/* Product Items Selection Grid */}
           {loading ? (
-            <div className="grid grid-cols-2 gap-3">
-              {[...Array(6)].map((_, i) => <div key={i} className="skeleton h-24 rounded-xl" />)}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {[...Array(6)].map((_, i) => <div key={i} className="skeleton h-32 rounded-2xl" />)}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[calc(100vh-230px)] overflow-y-auto pr-1">
               {filteredProducts.map(product => {
                 const inCart = cart.find(i => i.product_id === product.id);
                 return (
@@ -183,22 +222,27 @@ export default function TransactionPage() {
                     key={product.id}
                     id={`add-to-cart-${product.id}`}
                     onClick={() => addToCart(product)}
-                    className={`text-left p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                    className={`text-left p-3.5 rounded-2xl border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between h-36 ${
                       inCart
-                        ? 'bg-amber-500/10 border-amber-500/30'
-                        : 'bg-gray-900 border-gray-800 hover:border-gray-700'
+                        ? 'bg-[#FAF5EE] border-coffee-600 shadow-md ring-2 ring-coffee-500/20'
+                        : 'bg-white border-[#EAE3D9] hover:border-coffee-400 shadow-soft'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Coffee size={15} className={inCart ? 'text-amber-400' : 'text-gray-500'} />
+                    <div className="flex items-start justify-between gap-1">
+                      <div className="w-8 h-8 bg-[#F5EFE6] rounded-xl flex items-center justify-center flex-shrink-0 border border-[#E2D6C5]">
+                        <Coffee size={16} className={inCart ? 'text-coffee-800' : 'text-coffee-600'} />
                       </div>
                       {inCart && (
-                        <span className="badge bg-amber-500/20 text-amber-400 text-xs">x{inCart.quantity}</span>
+                        <span className="badge bg-coffee-800 text-white text-[10px] px-2 py-0.5 font-bold">
+                          {inCart.quantity}x
+                        </span>
                       )}
                     </div>
-                    <p className="font-medium text-gray-200 text-sm mt-2 line-clamp-1">{product.name}</p>
-                    <p className="text-amber-400 font-semibold text-sm">{formatRupiah(product.price)}</p>
+
+                    <div>
+                      <p className="font-bold text-coffee-950 text-xs sm:text-sm line-clamp-2 leading-snug font-display">{product.name}</p>
+                      <p className="text-coffee-700 font-extrabold text-xs sm:text-sm mt-1">{formatRupiah(product.price)}</p>
+                    </div>
                   </button>
                 );
               })}
@@ -206,49 +250,58 @@ export default function TransactionPage() {
           )}
         </div>
 
-        {/* Cart & Payment */}
-        <div className="lg:col-span-2">
-          <div className="card sticky top-0 space-y-4">
-            <div className="flex items-center gap-2">
-              <ShoppingCart size={18} className="text-amber-400" />
-              <h2 className="font-semibold text-gray-100">Keranjang</h2>
+        {/* Right Area — Farmaku Style Persistent Order Summary Panel (5 cols) */}
+        <div className="lg:col-span-5">
+          <div className="card bg-white border border-[#EAE3D9] rounded-3xl p-5 shadow-card space-y-4">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[#F0E9DF] pb-3">
+              <div className="flex items-center gap-2">
+                <ShoppingCart size={18} className="text-coffee-800" />
+                <h2 className="font-bold text-coffee-950 font-display text-base">Order Summary</h2>
+              </div>
               {cart.length > 0 && (
-                <span className="badge bg-amber-500/20 text-amber-400 ml-auto">{cart.length} item</span>
+                <span className="badge bg-cream-200 text-coffee-800 text-xs">{cart.length} Jenis Item</span>
               )}
             </div>
 
+            {/* Cart Items List with Quantity Controls (Farmaku style - 1 + buttons) */}
             {cart.length === 0 ? (
-              <div className="text-center py-8 text-gray-600">
-                <ShoppingCart size={32} className="mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Keranjang kosong</p>
+              <div className="text-center py-10 text-coffee-400 bg-[#FAF8F5] rounded-2xl border border-dashed border-[#E2D9CC]">
+                <ShoppingCart size={32} className="mx-auto mb-2 opacity-40" />
+                <p className="text-xs font-semibold">Keranjang pesanan masih kosong</p>
+                <p className="text-[11px] text-coffee-400 mt-0.5">Pilih produk di sebelah kiri untuk menambahkan</p>
               </div>
             ) : (
-              <div className="space-y-2 max-h-48 overflow-y-auto">
+              <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
                 {cart.map(item => (
-                  <div key={item.product_id} className="flex items-center gap-2 bg-gray-800/50 rounded-xl p-2.5">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-200 truncate">{item.name}</p>
-                      <p className="text-xs text-amber-400">{formatRupiah(item.subtotal)}</p>
+                  <div key={item.product_id} className="flex items-center justify-between bg-[#FAF7F2] rounded-2xl p-3 border border-[#EBE4D8]">
+                    <div className="min-w-0 pr-2">
+                      <p className="text-xs font-bold text-coffee-950 truncate font-display">{item.name}</p>
+                      <p className="text-[11px] text-coffee-700 font-semibold">{formatRupiah(item.subtotal)}</p>
                     </div>
-                    <div className="flex items-center gap-1">
+
+                    {/* Quantity Controls (- Qty +) */}
+                    <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-cream-300 shadow-2xs">
                       <button
                         onClick={() => updateQty(item.product_id, -1)}
-                        className="w-6 h-6 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center transition-colors"
+                        className="w-6 h-6 bg-cream-100 hover:bg-cream-200 text-coffee-800 rounded-lg flex items-center justify-center transition-colors text-xs font-bold"
                       >
-                        <Minus size={10} />
+                        <Minus size={12} />
                       </button>
-                      <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
+                      <span className="w-5 text-center text-xs font-bold text-coffee-900">{item.quantity}</span>
                       <button
                         onClick={() => updateQty(item.product_id, 1)}
-                        className="w-6 h-6 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center transition-colors"
+                        className="w-6 h-6 bg-coffee-800 text-white hover:bg-coffee-900 rounded-lg flex items-center justify-center transition-colors text-xs font-bold"
                       >
-                        <Plus size={10} />
+                        <Plus size={12} />
                       </button>
                       <button
                         onClick={() => removeFromCart(item.product_id)}
-                        className="w-6 h-6 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg flex items-center justify-center ml-1 transition-colors"
+                        className="w-6 h-6 text-rose-600 hover:bg-rose-50 rounded-lg flex items-center justify-center ml-1 transition-colors"
+                        title="Hapus"
                       >
-                        <Trash2 size={10} />
+                        <Trash2 size={12} />
                       </button>
                     </div>
                   </div>
@@ -256,90 +309,103 @@ export default function TransactionPage() {
               </div>
             )}
 
-            {/* Total */}
-            <div className="bg-gray-800/50 rounded-xl p-3 space-y-1">
-              <div className="flex justify-between font-bold">
-                <span className="text-gray-300">Total</span>
-                <span className="text-xl gradient-text">{formatRupiah(total)}</span>
+            {/* Payment Summary */}
+            <div className="bg-[#FAF7F2] rounded-2xl p-3.5 space-y-1.5 border border-[#EBE4D8]">
+              <div className="flex justify-between text-xs text-coffee-700">
+                <span>Sub Total</span>
+                <span>{formatRupiah(total)}</span>
+              </div>
+              <div className="flex justify-between text-xs text-coffee-700">
+                <span>Pajak (0%)</span>
+                <span>Rp 0</span>
+              </div>
+              <div className="flex justify-between font-bold text-coffee-950 text-base border-t border-cream-300 pt-2">
+                <span>Total Bayar</span>
+                <span className="text-coffee-800">{formatRupiah(total)}</span>
               </div>
             </div>
 
-            {/* Payment method */}
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setPaymentMethod('cash')}
-                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                  paymentMethod === 'cash'
-                    ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
-                    : 'bg-gray-800 border-gray-700 text-gray-400'
-                }`}
-              >
-                <Banknote size={15} /> Cash
-              </button>
-              <button
-                onClick={() => setPaymentMethod('card')}
-                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                  paymentMethod === 'card'
-                    ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
-                    : 'bg-gray-800 border-gray-700 text-gray-400'
-                }`}
-              >
-                <CreditCard size={15} /> Kartu
-              </button>
-            </div>
-
-            {/* Payment input */}
+            {/* Payment Method Selector (Farmaku Style: QRIS, Card, Cash) */}
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Jumlah Bayar (Rp)</label>
-              <input
-                id="payment-amount-input"
-                type="number"
-                value={paymentAmount}
-                onChange={e => setPaymentAmount(e.target.value)}
-                placeholder="0"
-                className="input-field text-lg font-bold"
-                min={total}
-              />
-              {paymentAmount && parseFloat(paymentAmount) >= total && (
-                <p className="text-xs text-amber-400 mt-1.5 font-medium">
-                  Kembalian: {formatRupiah(Math.max(0, change))}
-                </p>
-              )}
+              <label className="block text-xs font-bold text-coffee-800 mb-2">Pilih Metode Pembayaran</label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => setPaymentMethod('cash')}
+                  className={`flex flex-col items-center justify-center gap-1 py-2.5 px-2 rounded-2xl border text-xs font-semibold transition-all ${
+                    paymentMethod === 'cash'
+                      ? 'bg-coffee-800 text-white border-coffee-800 shadow-sm'
+                      : 'bg-white border-[#EAE3D9] text-coffee-700 hover:bg-cream-100'
+                  }`}
+                >
+                  <Banknote size={16} /> Cash
+                </button>
+                <button
+                  onClick={() => setPaymentMethod('qris')}
+                  className={`flex flex-col items-center justify-center gap-1 py-2.5 px-2 rounded-2xl border text-xs font-semibold transition-all ${
+                    paymentMethod === 'qris'
+                      ? 'bg-coffee-800 text-white border-coffee-800 shadow-sm'
+                      : 'bg-white border-[#EAE3D9] text-coffee-700 hover:bg-cream-100'
+                  }`}
+                >
+                  <QrCode size={16} /> QRIS
+                </button>
+                <button
+                  onClick={() => setPaymentMethod('card')}
+                  className={`flex flex-col items-center justify-center gap-1 py-2.5 px-2 rounded-2xl border text-xs font-semibold transition-all ${
+                    paymentMethod === 'card'
+                      ? 'bg-coffee-800 text-white border-coffee-800 shadow-sm'
+                      : 'bg-white border-[#EAE3D9] text-coffee-700 hover:bg-cream-100'
+                  }`}
+                >
+                  <CreditCard size={16} /> Debit / Kartu
+                </button>
+              </div>
             </div>
 
-            {/* Notes */}
-            <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Catatan (opsional)</label>
-              <input
-                type="text"
-                value={notes}
-                onChange={e => setNotes(e.target.value)}
-                placeholder="Catatan pesanan..."
-                className="input-field text-sm"
-              />
-            </div>
+            {/* Cash Payment Input */}
+            {paymentMethod === 'cash' && (
+              <div>
+                <label className="block text-xs font-semibold text-coffee-800 mb-1">Nominal Uang Tunai (Rp)</label>
+                <input
+                  id="payment-amount-input"
+                  type="number"
+                  value={paymentAmount}
+                  onChange={e => setPaymentAmount(e.target.value)}
+                  placeholder="Contoh: 50000"
+                  className="input-field text-sm font-bold bg-white"
+                  min={total}
+                />
+                {paymentAmount && parseFloat(paymentAmount) >= total && (
+                  <p className="text-xs text-emerald-700 font-bold mt-1">
+                    Kembalian: {formatRupiah(change)}
+                  </p>
+                )}
+              </div>
+            )}
 
-            {/* Checkout button */}
+            {/* Place Order Button (Farmaku style blue/brown big button) */}
             <button
               id="checkout-btn"
               onClick={handleCheckout}
-              disabled={processing || cart.length === 0 || !paymentAmount || parseFloat(paymentAmount) < total}
-              className="btn-primary w-full flex items-center justify-center gap-2 py-3"
+              disabled={processing || cart.length === 0 || (paymentMethod === 'cash' && (!paymentAmount || parseFloat(paymentAmount) < total))}
+              className="btn-primary w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold shadow-md"
             >
               {processing ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin" />
-                  Memproses...
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Memproses Pesanan...</span>
                 </>
               ) : (
                 <>
-                  <Check size={18} />
-                  Bayar {cart.length > 0 && formatRupiah(total)}
+                  <PackageCheck size={18} />
+                  <span>Proses Pesanan ({formatRupiah(total)})</span>
                 </>
               )}
             </button>
+
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -112,7 +112,7 @@ function deleteProduct(req, res) {
 async function generateDescription(req, res) {
   const db = getDB();
   const { id } = req.params;
-  const { tone = 'modern' } = req.body;
+  const { tone = 'modern', save = false } = req.body;
 
   const product = db.prepare(`
     SELECT p.*, c.name as category_name 
@@ -135,23 +135,51 @@ async function generateDescription(req, res) {
     );
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
 
-    // Save AI description to database
-    db.prepare('UPDATE products SET ai_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-      .run(description, id);
+    if (save) {
+      db.prepare('UPDATE products SET ai_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+        .run(description, id);
+    }
 
     res.json({
       success: true,
-      message: `Deskripsi AI (${tone}) berhasil digenerate dalam ${elapsed}s!`,
+      message: `Deskripsi AI (${tone}) berhasil dibuat dalam ${elapsed}s!`,
       data: {
         product_id: parseInt(id),
         ai_description: description,
         tone_used: tone,
-        generation_time: `${elapsed}s`
+        generation_time: `${elapsed}s`,
+        is_saved: save
       }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Gagal generate deskripsi AI.' });
   }
+}
+
+function saveAiDescription(req, res) {
+  const db = getDB();
+  const { id } = req.params;
+  const { ai_description } = req.body;
+
+  if (ai_description === undefined) {
+    return res.status(400).json({ success: false, message: 'Deskripsi AI wajib diisi.' });
+  }
+
+  const existing = db.prepare('SELECT id FROM products WHERE id = ? AND delete_flag = 0').get(id);
+  if (!existing) {
+    return res.status(404).json({ success: false, message: 'Produk tidak ditemukan.' });
+  }
+
+  db.prepare('UPDATE products SET ai_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+    .run(ai_description, id);
+
+  const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+
+  res.json({
+    success: true,
+    message: 'Deskripsi AI berhasil disetujui & disimpan!',
+    data: { product }
+  });
 }
 
 function getCategories(req, res) {
@@ -178,4 +206,4 @@ function createCategory(req, res) {
   res.status(201).json({ success: true, message: 'Kategori berhasil ditambahkan!', data: { category } });
 }
 
-module.exports = { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, generateDescription, getCategories, createCategory };
+module.exports = { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, generateDescription, saveAiDescription, getCategories, createCategory };

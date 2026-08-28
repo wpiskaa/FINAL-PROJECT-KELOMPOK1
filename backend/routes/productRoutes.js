@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   getAllProducts, getProductById, createProduct, updateProduct, deleteProduct,
-  generateDescription, getCategories, createCategory
+  generateDescription, saveAiDescription, getCategories, createCategory
 } = require('../controllers/productController');
 const { authenticate, authorizeAdmin } = require('../config/auth');
 
@@ -17,5 +17,6 @@ router.post('/', authenticate, authorizeAdmin, createProduct);
 router.put('/:id', authenticate, authorizeAdmin, updateProduct);
 router.delete('/:id', authenticate, authorizeAdmin, deleteProduct);
 router.post('/:id/generate-description', authenticate, generateDescription);
+router.post('/:id/save-ai-description', authenticate, saveAiDescription);
 
 module.exports = router;
