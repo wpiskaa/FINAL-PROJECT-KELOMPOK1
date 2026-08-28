@@ -112,6 +112,7 @@ function deleteProduct(req, res) {
 async function generateDescription(req, res) {
   const db = getDB();
   const { id } = req.params;
+  const { save = false } = req.body || {};
 
   const product = db.prepare(`
     SELECT p.*, c.name as category_name 
@@ -133,13 +134,20 @@ async function generateDescription(req, res) {
     );
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
 
+    // Save to database if requested (e.g. Quick Generate from catalog)
+    if (save) {
+      db.prepare('UPDATE products SET ai_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+        .run(description, id);
+    }
+
     res.json({
       success: true,
-      message: `Draf deskripsi AI berhasil dibuat dalam ${elapsed}s!`,
+      message: `Deskripsi AI berhasil dibuat dalam ${elapsed}s!`,
       data: {
         product_id: parseInt(id),
         ai_description: description,
-        generation_time: `${elapsed}s`
+        generation_time: `${elapsed}s`,
+        saved: save
       }
     });
   } catch (error) {
