@@ -61,7 +61,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 max-w-7xl font-sans">
+      <div className="space-y-6 w-full font-sans">
         <div className="skeleton h-20 w-full rounded-3xl" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => <div key={i} className="skeleton h-32 rounded-3xl" />)}
@@ -78,7 +78,7 @@ export default function DashboardPage() {
   })) || [];
 
   return (
-    <div className="space-y-6 animate-fadeIn font-sans max-w-7xl">
+    <div className="space-y-6 animate-fadeIn font-sans w-full">
       
       {/* Banner Greeting Header */}
       <div className="bg-white border border-[#EAE3D9] rounded-3xl p-6 sm:p-8 shadow-card flex flex-wrap items-center justify-between gap-4">

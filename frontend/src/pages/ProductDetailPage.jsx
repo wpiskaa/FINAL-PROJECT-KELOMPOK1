@@ -84,14 +84,14 @@ export default function ProductDetailPage() {
   const isChanged = descriptionText !== originalText;
 
   if (loading) return (
-    <div className="space-y-4 max-w-3xl">
+    <div className="space-y-4 w-full">
       <div className="skeleton h-8 w-48 rounded-xl" />
       <div className="skeleton h-64 rounded-2xl" />
     </div>
   );
 
   return (
-    <div className="max-w-3xl animate-fadeIn space-y-6 font-sans">
+    <div className="w-full animate-fadeIn space-y-6 font-sans">
       
       {/* Back Button */}
       <button

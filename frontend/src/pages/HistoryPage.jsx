@@ -22,7 +22,7 @@ export default function HistoryPage() {
   const totalRevenue = transactions.reduce((s, t) => s + t.total_amount, 0);
 
   return (
-    <div className="space-y-6 animate-fadeIn font-sans max-w-5xl">
+    <div className="space-y-6 animate-fadeIn font-sans w-full">
       
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
