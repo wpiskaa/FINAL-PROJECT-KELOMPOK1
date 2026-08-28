@@ -1,17 +1,20 @@
 {
-  "name": "backend",
+  "name": "coffeeshop-pos-backend",
   "version": "1.0.0",
-  "description": "Template backend Express - starting point, tinggal tambahin routes/controllers/models sesuai kebutuhan",
+  "description": "Backend API untuk Sistem Kasir Coffee Shop dengan Gemini AI",
   "main": "app.js",
-  "type": "commonjs",
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "better-sqlite3": "^11.1.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"

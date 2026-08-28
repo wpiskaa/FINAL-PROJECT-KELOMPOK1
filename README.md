@@ -1,55 +1,166 @@
-# Fullstack Template
+# ☕ BrewMate POS — Sistem Kasir Coffee Shop + Gemini AI
 
-Starter template sederhana: `backend` (Express) + `frontend` (Vite + React +
-Tailwind). Backend cuma punya 1 endpoint (`/health`) sebagai contoh, frontend
-nampilin status koneksi ke backend itu di halaman utama.
+> **FINAL-PROJECT-KELOMPOK1** — Pengembangan Aplikasi Web (PAW), Semester Antara 2026
 
-## Struktur
+Aplikasi web Point of Sale (POS) untuk coffee shop yang dilengkapi fitur **AI auto-generate deskripsi menu** menggunakan **Google Gemini API**.
+
+---
+
+## 👥 Anggota Kelompok 1
+
+| No | Nama | NIM | Role |
+|----|------|-----|------|
+| 1  | [Nama 1] | [NIM 1] | Project Lead / Backend |
+| 2  | [Nama 2] | [NIM 2] | Frontend / UI |
+| 3  | [Nama 3] | [NIM 3] | Backend / Database |
+| 4  | [Nama 4] | [NIM 4] | AI Integration / Testing |
+
+---
+
+## 🚀 Fitur Utama
+
+- 🔐 **Login & Autentikasi** — JWT-based auth dengan role Admin & Kasir
+- 📊 **Dashboard** — Statistik pendapatan harian/bulanan, grafik revenue 7 hari, produk terlaris
+- ☕ **Manajemen Menu** — CRUD produk dengan kategori (Admin only)
+- 🤖 **AI Deskripsi** — Generate deskripsi menu otomatis dengan **Google Gemini AI** (~2-3 detik)
+- 🛒 **Kasir / POS** — Keranjang belanja, pembayaran cash/kartu, hitung kembalian otomatis
+- 📜 **Riwayat Transaksi** — Filter per tanggal, expand detail per transaksi
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Teknologi |
+|-------|-----------|
+| **Frontend** | React 18 + Vite + Tailwind CSS |
+| **Backend** | Node.js + Express.js |
+| **Database** | SQLite (better-sqlite3) |
+| **Auth** | JWT + bcryptjs |
+| **AI** | Google Gemini API (gemini-1.5-flash) |
+| **Charts** | Recharts |
+| **Icons** | Lucide React |
+
+---
+
+## 📁 Struktur Project
+
 ```
-fullstack-template/
-├── backend/     # Express API (app.js, config/, routes/, controllers/, utils/) - lihat backend/README.md
-└── frontend/    # Vite + React + Tailwind - lihat frontend/README.md
+FINAL-PROJECT-KELOMPOK1/
+├── backend/                    # Express API
+│   ├── app.js                  # Entry point
+│   ├── config/
+│   │   ├── database.js         # SQLite setup & seed data
+│   │   └── auth.js             # JWT middleware
+│   ├── controllers/
+│   │   ├── authController.js   # Login, logout
+│   │   ├── productController.js # CRUD + Gemini AI
+│   │   ├── transactionController.js
+│   │   └── dashboardController.js
+│   ├── routes/                 # Express routers
+│   ├── utils/
+│   │   └── geminiHelper.js     # Google Gemini API integration
+│   └── .env.example
+│
+└── frontend/                   # React + Vite App
+    └── src/
+        ├── pages/
+        │   ├── LoginPage.jsx
+        │   ├── DashboardPage.jsx
+        │   ├── ProductsPage.jsx
+        │   ├── ProductDetailPage.jsx
+        │   ├── TransactionPage.jsx
+        │   └── HistoryPage.jsx
+        ├── components/
+        │   ├── Layout.jsx          # Sidebar layout
+        │   └── ProductFormModal.jsx
+        ├── hooks/
+        │   └── useAuth.jsx         # Auth context
+        └── utils/
+            ├── api.js              # Axios instance
+            └── formatters.js       # Rupiah, date format
 ```
 
-Tiap folder (termasuk sub-folder di `frontend/src/`) punya README sendiri
-yang jelasin isi & fungsinya masing-masing.
+---
 
-## Cara jalanin semuanya
+## ⚡ Cara Menjalankan
 
-Butuh 2 terminal terpisah (backend & frontend jalan bareng):
+### Prerequisites
+- Node.js v18+
+- npm
 
-**Terminal 1 - Backend:**
+### 1. Clone Repository
+```bash
+git clone https://github.com/[username]/FINAL-PROJECT-KELOMPOK1.git
+cd FINAL-PROJECT-KELOMPOK1
+```
+
+### 2. Setup Backend
 ```bash
 cd backend
 cp .env.example .env
+# Edit .env — isi GEMINI_API_KEY dengan API key Anda
 npm install
 npm run dev
 ```
-Jalan di `http://localhost:3000`
+Backend berjalan di: `http://localhost:3000`
 
-**Terminal 2 - Frontend:**
+### 3. Setup Frontend (terminal baru)
 ```bash
 cd frontend
 cp .env.example .env
 npm install
 npm run dev
 ```
-Jalan di `http://localhost:5173`
+Frontend berjalan di: `http://localhost:5173`
 
-Buka `http://localhost:5173` di browser - kalo backend-nya juga jalan,
-halaman utama bakal nunjukin badge hijau "Backend Aktif" beserta respons
-JSON dari `/health`.
+---
 
-## Kenapa dipisah 2 folder (bukan 1 project)
+## 🔑 Environment Variables
 
-Backend dan frontend punya `package.json`, `node_modules`, dan siklus
-deploy masing-masing (misal backend di-deploy ke Railway, frontend ke
-Vercel/Netlify) - misahin dari awal biar gak perlu direstrukturisasi nanti
-kalo project makin gede.
+### Backend (`backend/.env`)
+```env
+PORT=3000
+JWT_SECRET=your_secret_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+NODE_ENV=development
+```
 
-## Cara pake template ini buat project baru
+> **Mendapatkan Gemini API Key:** Kunjungi [Google AI Studio](https://aistudio.google.com/app/apikey) → Create API Key (GRATIS)
 
-1. Backend: tambah model/route/controller baru ngikutin pola `health.*`
-   yang udah ada (`routes/<nama>.routes.js` + `controllers/<nama>.controller.js`)
-2. Frontend: tambah halaman baru di `pages/`, daftarin di `routes/index.jsx`,
-   pisahin logic data-nya ke `hooks/`, potongan UI reusable ke `components/`
+---
+
+## 👤 Default Akun
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@coffeeshop.com | admin123 |
+| Kasir | kasir@coffeeshop.com | kasir123 |
+
+---
+
+## 🌐 API Endpoints
+
+| Method | Endpoint | Deskripsi | Auth |
+|--------|----------|-----------|------|
+| POST | `/api/auth/login` | Login | - |
+| GET | `/api/dashboard/stats` | Statistik dashboard | ✅ |
+| GET | `/api/products` | List produk | ✅ |
+| POST | `/api/products` | Tambah produk | Admin |
+| PUT | `/api/products/:id` | Edit produk | Admin |
+| DELETE | `/api/products/:id` | Hapus produk | Admin |
+| POST | `/api/products/:id/generate-description` | **AI Generate** | ✅ |
+| GET | `/api/transactions` | Riwayat transaksi | ✅ |
+| POST | `/api/transactions` | Buat transaksi | ✅ |
+
+---
+
+## 📸 Tampilan Aplikasi
+
+> Jalankan aplikasi untuk melihat tampilannya!
+
+---
+
+## 📄 Lisensi
+
+Dibuat untuk keperluan Final Project mata kuliah **Pengembangan Aplikasi Web (PAW)**  
+Semester Antara 2026 — Kelompok 1

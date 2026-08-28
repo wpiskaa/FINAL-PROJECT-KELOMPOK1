@@ -1,15 +1,35 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import axios from 'axios';
 
-/**
- * Wrapper kecil buat GET request ke backend, biar gak nulis ulang
- * fetch() + error handling di tiap komponen/hook yang butuh data.
- */
-export async function apiGet(path) {
-  const res = await fetch(`${BASE_URL}${path}`);
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-  if (!res.ok) {
-    throw new Error(`Request gagal: ${res.status} ${res.statusText}`);
+const api = axios.create({
+  baseURL: `${API_BASE}/api`,
+  timeout: 15000,
+});
+
+// Request interceptor - add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor - handle 401
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
   }
+);
 
-  return res.json();
-}
+export default api;
