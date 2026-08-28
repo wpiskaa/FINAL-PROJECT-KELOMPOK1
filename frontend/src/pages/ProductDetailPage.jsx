@@ -21,12 +21,14 @@ export default function ProductDetailPage() {
 
   useEffect(() => { loadProduct(); }, [id]);
 
-  async function handleGenerateAI() {
+  const [tone, setTone] = useState('modern');
+
+  async function handleGenerateAI(selectedTone = tone) {
     setGenerating(true);
-    const toastId = toast.loading('🤖 Gemini AI sedang membuat deskripsi...');
+    const toastId = toast.loading(`🤖 Gemini AI (${selectedTone}) sedang membuat deskripsi...`);
     try {
-      const res = await api.post(`/products/${id}/generate-description`);
-      toast.success(`✨ Deskripsi selesai! (${res.data.data.generation_time})`, { id: toastId });
+      const res = await api.post(`/products/${id}/generate-description`, { tone: selectedTone });
+      toast.success(`✨ Deskripsi AI (${selectedTone}) selesai! (${res.data.data.generation_time})`, { id: toastId });
       loadProduct();
     } catch {
       toast.error('Gagal generate deskripsi', { id: toastId });
@@ -85,19 +87,19 @@ export default function ProductDetailPage() {
 
         {/* AI Description */}
         <div className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 border border-amber-500/15 rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-amber-500/20 rounded-xl flex items-center justify-center">
                 <Sparkles size={16} className="text-amber-400" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-amber-400">Deskripsi AI (Gemini)</p>
-                <p className="text-xs text-gray-500">Auto-generated description</p>
+                <p className="text-xs text-gray-500">Pilih gaya bahasa deskripsi AI</p>
               </div>
             </div>
             <button
               id="generate-ai-btn"
-              onClick={handleGenerateAI}
+              onClick={() => handleGenerateAI(tone)}
               disabled={generating}
               className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 rounded-xl border border-amber-500/20 transition-all text-xs font-medium disabled:opacity-50"
             >
@@ -106,8 +108,30 @@ export default function ProductDetailPage() {
               ) : (
                 <Wand2 size={12} />
               )}
-              {generating ? 'Generating...' : 'Generate Ulang'}
+              {generating ? 'Generating...' : 'Generate AI'}
             </button>
+          </div>
+
+          {/* Tone Selector Buttons */}
+          <div className="flex items-center gap-2 mb-4 p-1 bg-gray-900/60 rounded-xl border border-gray-800 w-fit">
+            {[
+              { id: 'modern', label: '☕ Modern / Santai' },
+              { id: 'elegant', label: '✨ Elegan / Artisan' },
+              { id: 'playful', label: '🎉 Ceria / Playful' },
+            ].map(item => (
+              <button
+                key={item.id}
+                onClick={() => { setTone(item.id); handleGenerateAI(item.id); }}
+                disabled={generating}
+                className={`px-3 py-1 text-xs rounded-lg transition-all font-medium ${
+                  tone === item.id
+                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
 
           {product.ai_description ? (
@@ -117,7 +141,7 @@ export default function ProductDetailPage() {
               <Wand2 size={24} className="text-gray-600 mx-auto mb-2" />
               <p className="text-gray-500 text-sm">Belum ada deskripsi AI</p>
               <button
-                onClick={handleGenerateAI}
+                onClick={() => handleGenerateAI(tone)}
                 disabled={generating}
                 className="btn-primary mt-3 text-sm flex items-center gap-2 mx-auto"
               >

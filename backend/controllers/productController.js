@@ -112,12 +112,13 @@ function deleteProduct(req, res) {
 async function generateDescription(req, res) {
   const db = getDB();
   const { id } = req.params;
+  const { tone = 'modern' } = req.body;
 
   const product = db.prepare(`
     SELECT p.*, c.name as category_name 
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
-    WHERE p.id = ?
+    WHERE p.id = ? AND p.delete_flag = 0
   `).get(id);
 
   if (!product) {
@@ -129,7 +130,8 @@ async function generateDescription(req, res) {
     const description = await generateMenuDescription(
       product.name,
       product.category_name || 'Umum',
-      product.price
+      product.price,
+      tone
     );
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
 
@@ -139,10 +141,11 @@ async function generateDescription(req, res) {
 
     res.json({
       success: true,
-      message: `Deskripsi AI berhasil digenerate dalam ${elapsed} detik!`,
+      message: `Deskripsi AI (${tone}) berhasil digenerate dalam ${elapsed}s!`,
       data: {
         product_id: parseInt(id),
         ai_description: description,
+        tone_used: tone,
         generation_time: `${elapsed}s`
       }
     });
