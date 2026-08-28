@@ -9,7 +9,7 @@ function getAllProducts(req, res) {
     SELECT p.*, c.name as category_name 
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
-    WHERE 1=1
+    WHERE p.delete_flag = 0
   `;
   const params = [];
 
@@ -45,7 +45,7 @@ function getProductById(req, res) {
     SELECT p.*, c.name as category_name 
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
-    WHERE p.id = ?
+    WHERE p.id = ? AND p.delete_flag = 0
   `).get(id);
 
   if (!product) {
@@ -99,13 +99,14 @@ function deleteProduct(req, res) {
   const db = getDB();
   const { id } = req.params;
 
-  const existing = db.prepare('SELECT id FROM products WHERE id = ?').get(id);
+  const existing = db.prepare('SELECT id FROM products WHERE id = ? AND delete_flag = 0').get(id);
   if (!existing) {
     return res.status(404).json({ success: false, message: 'Produk tidak ditemukan.' });
   }
 
-  db.prepare('DELETE FROM products WHERE id = ?').run(id);
-  res.json({ success: true, message: 'Produk berhasil dihapus.' });
+  // Soft delete — set delete_flag = 1, data transaksi lama tetap aman
+  db.prepare('UPDATE products SET delete_flag = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(id);
+  res.json({ success: true, message: 'Produk berhasil dihapus (soft delete).' });
 }
 
 async function generateDescription(req, res) {
@@ -156,4 +157,22 @@ function getCategories(req, res) {
   res.json({ success: true, data: { categories } });
 }
 
-module.exports = { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, generateDescription, getCategories };
+function createCategory(req, res) {
+  const db = getDB();
+  const { name } = req.body;
+
+  if (!name || !name.trim()) {
+    return res.status(400).json({ success: false, message: 'Nama kategori wajib diisi.' });
+  }
+
+  const existing = db.prepare('SELECT id FROM categories WHERE name = ?').get(name.trim());
+  if (existing) {
+    return res.status(409).json({ success: false, message: 'Kategori dengan nama tersebut sudah ada.' });
+  }
+
+  const result = db.prepare('INSERT INTO categories (name) VALUES (?)').run(name.trim());
+  const category = db.prepare('SELECT * FROM categories WHERE id = ?').get(result.lastInsertRowid);
+  res.status(201).json({ success: true, message: 'Kategori berhasil ditambahkan!', data: { category } });
+}
+
+module.exports = { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, generateDescription, getCategories, createCategory };

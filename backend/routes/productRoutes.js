@@ -2,12 +2,16 @@ const express = require('express');
 const router = express.Router();
 const {
   getAllProducts, getProductById, createProduct, updateProduct, deleteProduct,
-  generateDescription, getCategories
+  generateDescription, getCategories, createCategory
 } = require('../controllers/productController');
 const { authenticate, authorizeAdmin } = require('../config/auth');
 
-router.get('/', authenticate, getAllProducts);
+// Category routes (standalone, sesuai ERD)
 router.get('/categories', authenticate, getCategories);
+router.post('/categories', authenticate, authorizeAdmin, createCategory);
+
+// Product routes
+router.get('/', authenticate, getAllProducts);
 router.get('/:id', authenticate, getProductById);
 router.post('/', authenticate, authorizeAdmin, createProduct);
 router.put('/:id', authenticate, authorizeAdmin, updateProduct);

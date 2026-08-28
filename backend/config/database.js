@@ -50,6 +50,7 @@ function initDB() {
       category_id INTEGER,
       image_url TEXT DEFAULT '',
       is_available INTEGER DEFAULT 1,
+      delete_flag INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (category_id) REFERENCES categories(id)
