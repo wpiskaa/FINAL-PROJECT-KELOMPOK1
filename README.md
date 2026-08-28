@@ -10,7 +10,7 @@ Aplikasi web Point of Sale (POS) untuk coffee shop yang dilengkapi fitur **AI au
 
 | No | Nama | NIM | Role |
 |----|------|-----|------|
-| 1  | Hafiz Kurniawan | 20240140024 | Backend & UI Design |
+| 1  | Hafiz Kurniawan | 20240140024 | Backend & UI Research |
 | 2  | Anneira Nur Khairani | 20240140178 | Frontend Developer |
 | 3  | Safira Dwi Khairunisa | 20240140173 | Project Lead / Frontend |
 | 4  | Rossa Kayla Isma Aziz | 20240140215 | UI/UX & Testing |
