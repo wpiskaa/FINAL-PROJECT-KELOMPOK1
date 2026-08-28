@@ -112,7 +112,6 @@ function deleteProduct(req, res) {
 async function generateDescription(req, res) {
   const db = getDB();
   const { id } = req.params;
-  const { tone = 'modern', save = false } = req.body;
 
   const product = db.prepare(`
     SELECT p.*, c.name as category_name 
@@ -130,25 +129,17 @@ async function generateDescription(req, res) {
     const description = await generateMenuDescription(
       product.name,
       product.category_name || 'Umum',
-      product.price,
-      tone
+      product.price
     );
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
 
-    if (save) {
-      db.prepare('UPDATE products SET ai_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-        .run(description, id);
-    }
-
     res.json({
       success: true,
-      message: `Deskripsi AI (${tone}) berhasil dibuat dalam ${elapsed}s!`,
+      message: `Draf deskripsi AI berhasil dibuat dalam ${elapsed}s!`,
       data: {
         product_id: parseInt(id),
         ai_description: description,
-        tone_used: tone,
-        generation_time: `${elapsed}s`,
-        is_saved: save
+        generation_time: `${elapsed}s`
       }
     });
   } catch (error) {

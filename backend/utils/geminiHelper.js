@@ -1,7 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 /**
- * Advanced Gemini AI Helper untuk Coffee Shop POS
+ * Gemini AI Helper untuk Coffee Shop POS
  * Dikembangkan oleh: Hafiz Kurniawan (Backend & UI Research)
  */
 
@@ -23,19 +23,10 @@ const FALLBACK_DESCRIPTIONS = {
   ]
 };
 
-async function generateMenuDescription(productName, category = 'Umum', price = 0, tone = 'modern') {
+async function generateMenuDescription(productName, category = 'Umum', price = 0) {
   const apiKey = process.env.GEMINI_API_KEY;
 
-  const tonePrompts = {
-    modern: 'gaya bahasa santai, estetik, hangat, dan kekinian ala coffee shop modern',
-    elegant: 'gaya bahasa mewah, elegan, dan puitis khas artisan specialty coffee',
-    playful: 'gaya bahasa seru, ceria, menggiurkan, dan penuh semangat'
-  };
-
-  const selectedToneInstruction = tonePrompts[tone] || tonePrompts.modern;
-
   if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-    // Dynamic smart fallback jika API key belum diset
     const categoryFallbacks = FALLBACK_DESCRIPTIONS[category] || FALLBACK_DESCRIPTIONS['Default'];
     const randomFallback = categoryFallbacks[Math.floor(Math.random() * categoryFallbacks.length)];
     return `${productName} — ${randomFallback}`;
@@ -45,7 +36,7 @@ async function generateMenuDescription(productName, category = 'Umum', price = 0
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const prompt = `Buatkan deskripsi menu untuk coffee shop dalam Bahasa Indonesia dengan ${selectedToneInstruction}.
+    const prompt = `Buatkan deskripsi menu untuk coffee shop dalam Bahasa Indonesia yang menarik, estetik, dan profesional.
 
 Detail Produk:
 - Nama Menu: ${productName}
@@ -53,10 +44,10 @@ Detail Produk:
 - Kisaran Harga: Rp ${price.toLocaleString('id-ID')}
 
 Ketentuan Penulisan:
-1. Panjang deskripsi antara 25 hingga 45 kata.
-2. Ciptakan kesan cita rasa yang kuat, harum, dan menggiurkan.
+1. Panjang deskripsi antara 25 hingga 40 kata.
+2. Ciptakan kesan cita rasa yang lezat, harum, dan menggugah selera.
 3. Jangan sebutkan harga spesifik dalam teks deskripsi.
-4. Jangan gunakan pembuka seperti "Tentu," atau "Berikut deskripsi". Langsung tulis teks deskripsinya.`;
+4. Jangan gunakan kata pembuka seperti "Tentu," atau "Berikut deskripsi". Langsung tulis teks deskripsinya saja.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
@@ -70,26 +61,4 @@ Ketentuan Penulisan:
   }
 }
 
-/**
- * Fitur Tambahan: AI Menu Pair Suggestion
- */
-async function generatePairingSuggestion(productName, category) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-    return category === 'Kopi' ? 'Sangat cocok dinikmati bersama Croissant hangat.' : 'Pas dipadukan dengan Espresso shot.';
-  }
-
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-    const prompt = `Berikan 1 kalimat singkat rekomendasi pasangan makanan/minuman yang cocok untuk dinikmati bersama "${productName}" (Kategori: ${category}) di coffee shop. Maksimal 15 kata.`;
-
-    const result = await model.generateContent(prompt);
-    return (await result.response).text().trim();
-  } catch {
-    return 'Sangat cocok dipadukan dengan camilan favoritmu.';
-  }
-}
-
-module.exports = { generateMenuDescription, generatePairingSuggestion };
+module.exports = { generateMenuDescription };
