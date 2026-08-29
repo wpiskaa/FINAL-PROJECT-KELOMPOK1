@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import TeamInfoModal from './TeamInfoModal';
 import {
   LayoutDashboard, Coffee, ShoppingCart, History,
-  LogOut, Menu, Sparkles, ChevronRight, User
+  LogOut, Menu, Sparkles, ChevronRight, User, Info
 } from 'lucide-react';
 
 const navItems = [
@@ -13,10 +14,19 @@ const navItems = [
   { to: '/history', icon: History, label: 'Riwayat Penjualan' },
 ];
 
+const teamMembers = [
+  { nama: 'Safira Dwi Khairunisa', nim: '20240140173', role: 'Project Lead / Frontend' },
+  { nama: 'Anneira Nur Khairani', nim: '20240140178', role: 'Frontend Developer' },
+  { nama: 'Rossa Kayla Isma Aziz', nim: '20240140215', role: 'UI/UX & Testing' },
+  { nama: 'Ilham Saputra', nim: '20240140118', role: 'Backend & Database' },
+  { nama: 'Hafiz Kurniawan', nim: '20240140024', role: 'Backend & UI Research' },
+];
+
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   function handleLogout() {
     logout();
@@ -33,7 +43,7 @@ export default function Layout() {
         />
       )}
 
-      {/* Farmaku Style Clean Left Sidebar */}
+      {/* Sidebar */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-[#EAE3D9] 
         flex flex-col justify-between transition-transform duration-300 ease-in-out shadow-sm
@@ -86,6 +96,15 @@ export default function Layout() {
 
         {/* Bottom Section */}
         <div className="p-4 border-t border-[#F0E9DF] space-y-3 bg-[#FAF7F2]">
+          {/* Tombol Info Kelompok */}
+          <button
+            onClick={() => setShowInfoModal(true)}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 bg-white hover:bg-[#F0E9DF] rounded-2xl border border-[#EAE3D9] transition-colors text-left"
+          >
+            <Info size={16} className="text-[#8C6438] shrink-0" />
+            <span className="text-xs font-bold text-[#3D2616]">Info Kelompok & Pengembang</span>
+          </button>
+
           {/* Gemini AI Card */}
           <div className="p-3.5 bg-[#3A2213] rounded-2xl text-white shadow-sm border border-[#5C3B24]">
             <div className="flex items-center gap-2 mb-1">
@@ -150,6 +169,13 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Modal Info Kelompok & Pengembang */}
+      <TeamInfoModal
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        members={teamMembers}
+      />
     </div>
   );
 }
