@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import { formatRupiah, formatDate } from '../utils/formatters';
-import { History, ChevronDown, ChevronUp, Calendar, Printer } from 'lucide-react';
+import { History, ChevronDown, ChevronUp, Calendar, Printer, Coffee, FileX } from 'lucide-react';
 
 export default function HistoryPage() {
   const [transactions, setTransactions] = useState([]);
@@ -59,10 +59,27 @@ export default function HistoryPage() {
           {[...Array(5)].map((_, i) => <div key={i} className="skeleton h-16 rounded-2xl" />)}
         </div>
       ) : transactions.length === 0 ? (
-        <div className="card text-center py-16 bg-white rounded-3xl">
-          <History size={40} className="text-coffee-300 mx-auto mb-3" />
-          <p className="text-coffee-600 font-semibold text-sm">Belum ada riwayat transaksi</p>
-          <p className="text-coffee-400 text-xs mt-1">Lakukan transaksi baru di menu Kasir untuk melihat riwayat</p>
+        // Desain Empty State baru yang lebih menarik saat data transaksi kosong / filter tanggal tidak cocok
+        <div className="card text-center py-16 px-6 bg-white border border-[#EAE3D9] rounded-3xl shadow-card flex flex-col items-center justify-center animate-fadeIn">
+          <div className="w-16 h-16 bg-cream-100 rounded-full flex items-center justify-center text-coffee-600 mb-4 border border-cream-200 shadow-inner">
+            {dateFilter ? <FileX size={32} /> : <Coffee size={32} />}
+        </div>
+          <h3 className="text-coffee-950 font-extrabold text-base sm:text-lg mb-1">
+            {dateFilter ? 'Tidak Ada Transaksi Pada Tanggal Ini' : 'Belum Ada Riwayat Transaksi'}
+          </h3>
+          <p className="text-coffee-600 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+            {dateFilter 
+              ? 'Coba ganti filter tanggal atau klik tombol reset untuk melihat semua riwayat transaksi.' 
+              : 'Semua catatan penjualan kasir akan tampil di sini. Mulai buat transaksi pertama Anda di menu Kasir!'}
+          </p>
+          {dateFilter && (
+            <button
+              onClick={() => setDateFilter('')}
+              className="mt-5 btn-secondary text-xs px-4 py-2 font-semibold shadow-xs"
+            >
+              Tampilkan Semua Transaksi
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
