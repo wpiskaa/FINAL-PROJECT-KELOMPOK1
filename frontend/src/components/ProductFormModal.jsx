@@ -21,6 +21,22 @@ export default function ProductFormModal({ product, categories, onClose, onSucce
 
   async function handleSubmit(e) {
     e.preventDefault();
+    // Validasi 1: Memeriksa apakah nama menu dan harga sudah diisi
+    if (!form.name.trim() || !form.price) {
+      toast.error('Nama dan harga menu wajib diisi!');
+      return;
+    }
+    // Validasi 2: Memeriksa panjang karakter nama menu minimal 3 karakter
+    if (form.name.trim().length < 3) {
+      toast.error('Nama menu minimal harus 3 karakter!');
+      return;
+    }
+    // Validasi 3: Memeriksa harga produk tidak boleh kurang dari atau sama dengan 0
+    if (Number(form.price) <= 0) {
+      toast.error('Harga menu harus lebih dari Rp 0!');
+      return;
+    }
+
     if (!form.name || !form.price) {
       toast.error('Nama dan harga menu wajib diisi!');
       return;
