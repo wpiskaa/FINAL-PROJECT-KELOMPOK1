@@ -89,6 +89,16 @@ function initDB() {
     )
   `);
 
+  // Indexes for high performance queries
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
+    CREATE INDEX IF NOT EXISTS idx_products_delete_flag ON products(delete_flag);
+    CREATE INDEX IF NOT EXISTS idx_transactions_cashier ON transactions(cashier_id);
+    CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON transactions(created_at);
+    CREATE INDEX IF NOT EXISTS idx_transaction_items_trx ON transaction_items(transaction_id);
+    CREATE INDEX IF NOT EXISTS idx_transaction_items_prod ON transaction_items(product_id);
+  `);
+
   // Seed default data
   seedData(db);
   
