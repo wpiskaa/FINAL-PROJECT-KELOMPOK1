@@ -1,8 +1,9 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const config = require('../config/env');
 
 /**
  * Gemini AI Helper untuk Coffee Shop POS
- * Dikembangkan oleh: Hafiz Kurniawan (Backend & UI Research)
+ * Tim Backend: Ilham Saputra & Hafiz Kurniawan
  */
 
 const FALLBACK_DESCRIPTIONS = {
@@ -24,7 +25,7 @@ const FALLBACK_DESCRIPTIONS = {
 };
 
 async function generateMenuDescription(productName, category = 'Umum', price = 0) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = config.geminiApiKey || process.env.GEMINI_API_KEY;
 
   if (!apiKey || apiKey === 'your_gemini_api_key_here') {
     const categoryFallbacks = FALLBACK_DESCRIPTIONS[category] || FALLBACK_DESCRIPTIONS['Default'];
