@@ -1,8 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { getDB } = require('../config/database');
+const config = require('../config/env');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'coffeeshop_secret_key';
+const JWT_SECRET = config.jwtSecret;
 
 function login(req, res) {
   const { email, password } = req.body;

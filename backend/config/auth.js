@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+const config = require('./env');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'coffeeshop_secret_key';
+const JWT_SECRET = config.jwtSecret;
 
 function authenticate(req, res, next) {
   const authHeader = req.headers['authorization'];
