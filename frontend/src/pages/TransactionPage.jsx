@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
-import { formatRupiah } from '../utils/formatters';
+import { formatRupiah, formatDate } from '../utils/formatters';
+import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
 import {
   ShoppingCart, Plus, Minus, Trash2, Coffee, Search,
@@ -8,6 +9,7 @@ import {
 } from 'lucide-react';
 
 export default function TransactionPage() {
+  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
@@ -98,26 +100,48 @@ export default function TransactionPage() {
   if (receipt) {
     return (
       <div className="max-w-md mx-auto animate-fadeIn font-sans py-6">
-        <div className="card text-center bg-white rounded-3xl p-8 border border-[#EAE3D9] shadow-card space-y-6">
+
+        {/* Print-only styling: saat print, cuma #receipt-area yang muncul */}
+        <style>{`
+          @media print {
+            body * { visibility: hidden; }
+            #receipt-area, #receipt-area * { visibility: visible; }
+            #receipt-area { position: absolute; top: 0; left: 0; width: 100%; }
+            .no-print { display: none !important; }
+          }
+        `}</style>
+
+        <div id="receipt-area" className="card text-center bg-white rounded-3xl p-8 border border-[#EAE3D9] shadow-card space-y-6">
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-700 shadow-xs">
             <Check size={36} />
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold font-display text-coffee-950">Transaksi Selesai!</h2>
+            <h2 className="text-2xl font-bold font-display text-coffee-950">BrewMate Coffee Shop</h2>
+            <p className="text-coffee-500 text-[11px] mt-0.5">Transaksi Selesai</p>
             <p className="text-coffee-600 text-xs font-mono mt-1">{receipt.transaction_code}</p>
+            <p className="text-coffee-400 text-[11px] mt-0.5">
+              {formatDate(receipt.created_at || new Date())}
+              {user?.name && ` · Kasir: ${user.name}`}
+            </p>
           </div>
 
           {/* Struk Details */}
-          <div className="bg-[#FAF7F2] rounded-2xl p-4 text-left space-y-3 border border-[#EBE4D8]">
-            <p className="text-xs font-bold text-coffee-900 border-b border-cream-300 pb-2">Rincian Pesanan</p>
+          <div className="bg-[#FAF7F2] rounded-2xl p-4 text-left space-y-3 border border-[#EBE4D8] border-dashed">
+            <p className="text-xs font-bold text-coffee-900 border-b border-cream-300 pb-2 flex justify-between">
+              <span>Rincian Pesanan</span>
+              <span className="text-coffee-500 font-normal">{receipt.items?.length || 0} item</span>
+            </p>
             {receipt.items?.map((item, i) => (
               <div key={i} className="flex justify-between text-xs">
-                <span className="text-coffee-800 font-medium">{item.product_name} ×{item.quantity}</span>
+                <div>
+                  <span className="text-coffee-800 font-medium block">{item.product_name}</span>
+                  <span className="text-coffee-400 text-[10px]">{item.quantity} × {formatRupiah(item.product_price)}</span>
+                </div>
                 <span className="text-coffee-950 font-bold">{formatRupiah(item.subtotal)}</span>
               </div>
             ))}
-            
+
             <div className="border-t border-cream-300 pt-2 space-y-1 text-xs">
               <div className="flex justify-between font-bold text-coffee-950 text-sm">
                 <span>Total Belanja</span>
@@ -136,9 +160,13 @@ export default function TransactionPage() {
                 <span>{formatRupiah(receipt.change_amount)}</span>
               </div>
             </div>
+
+            <p className="text-center text-[10px] text-coffee-400 pt-2 border-t border-dashed border-cream-300">
+              Terima kasih sudah ngopi di BrewMate ☕
+            </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 no-print">
             <button
               onClick={() => window.print()}
               className="btn-secondary flex-1 py-2.5 text-xs flex items-center justify-center gap-1.5"

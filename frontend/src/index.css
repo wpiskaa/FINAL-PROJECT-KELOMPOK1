@@ -94,6 +94,17 @@
     box-shadow: 0 0 0 3px rgba(74, 46, 26, 0.12);
   }
 
+  /* Sembunyikan tombol panah atas-bawah bawaan browser di input angka,
+     biar ukuran kotak konsisten baik kosong maupun ada isi */
+  .input-field[type="number"]::-webkit-outer-spin-button,
+  .input-field[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .input-field[type="number"] {
+    -moz-appearance: textfield;
+  }
+
   .badge {
     display: inline-flex;
     align-items: center;
