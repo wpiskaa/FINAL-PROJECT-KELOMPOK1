@@ -1,17 +1,19 @@
 require('dotenv').config();
 
 /**
- * Semua env variable dibaca SEKALI di sini, bukan langsung process.env
- * tersebar di banyak file. Kalo nambah env variable baru, tinggal
- * tambahin di sini, terus import { config } di file yang butuh -
- * gampang dicari ada env apa aja yang dipake project ini.
+ * Sentralisasi Environment Variables & Konfigurasi Aplikasi.
+ * Semua variabel dibaca sekali di file ini untuk mencegah process.env tersebar
+ * dan menjamin validitas nilai default serta imutabilitas konfigurasi.
  */
 const config = {
-  port: process.env.PORT || 3000,
+  port: parseInt(process.env.PORT, 10) || 3000,
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   jwtSecret: process.env.JWT_SECRET || 'coffeeshop_secret_key_kelompok1_paw2026',
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '8h',
+  bcryptSaltRounds: 10,
   geminiApiKey: process.env.GEMINI_API_KEY || '',
   nodeEnv: process.env.NODE_ENV || 'development'
 };
 
-module.exports = config;
+// Immutability protection: mencegah perubahan konfigurasi saat runtime
+module.exports = Object.freeze(config);

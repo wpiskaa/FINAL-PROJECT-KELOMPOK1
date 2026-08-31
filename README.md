@@ -144,14 +144,22 @@ NODE_ENV=development
 | Method | Endpoint | Deskripsi | Auth |
 |--------|----------|-----------|------|
 | POST | `/api/auth/login` | Login | - |
-| GET | `/api/dashboard/stats` | Statistik dashboard | ✅ |
+| GET | `/api/dashboard/stats` | Statistik dashboard & kategori terlaris | ✅ |
+| GET | `/api/categories` | List semua kategori | ✅ |
+| GET | `/api/categories/:id` | Detail kategori & hitung produk | ✅ |
+| POST | `/api/categories` | Tambah kategori baru | Admin |
+| PUT | `/api/categories/:id` | Edit kategori | Admin |
+| DELETE | `/api/categories/:id` | Hapus kategori (dengan proteksi relasi) | Admin |
 | GET | `/api/products` | List produk | ✅ |
+| GET | `/api/products/:id` | Detail produk | ✅ |
 | POST | `/api/products` | Tambah produk | Admin |
 | PUT | `/api/products/:id` | Edit produk | Admin |
-| DELETE | `/api/products/:id` | Hapus produk | Admin |
-| POST | `/api/products/:id/generate-description` | **AI Generate** | ✅ |
-| GET | `/api/transactions` | Riwayat transaksi | ✅ |
-| POST | `/api/transactions` | Buat transaksi | ✅ |
+| DELETE | `/api/products/:id` | Hapus produk (soft delete) | Admin |
+| POST | `/api/products/:id/generate-description` | **AI Generate Deskripsi (Gemini)** | ✅ |
+| POST | `/api/products/:id/save-ai-description` | Simpan deskripsi AI | ✅ |
+| GET | `/api/transactions` | Riwayat transaksi (dengan filter & pagination) | ✅ |
+| GET | `/api/transactions/:id` | Detail transaksi & rincian item | ✅ |
+| POST | `/api/transactions` | Buat transaksi kasir (atomic ACID) | ✅ |
 
 ---
 

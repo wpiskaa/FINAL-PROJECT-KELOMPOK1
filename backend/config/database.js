@@ -9,8 +9,17 @@ let db;
 function getDB() {
   if (!db) {
     db = new Database(DB_PATH);
+    // Optimasi Konkurensi & Integritas
     db.pragma('journal_mode = WAL');
     db.pragma('foreign_keys = ON');
+    db.pragma('synchronous = NORMAL');
+    // Optimasi Caching & Memori (64MB Page Cache & In-Memory Temp Store)
+    db.pragma('cache_size = -64000');
+    db.pragma('temp_store = MEMORY');
+    // Memory-Mapped I/O (256MB) untuk kecepatan baca instan
+    db.pragma('mmap_size = 268435456');
+    // Lock contention prevention (5000ms busy timeout)
+    db.pragma('busy_timeout = 5000');
   }
   return db;
 }
@@ -89,12 +98,14 @@ function initDB() {
     )
   `);
 
-  // Indexes for high performance queries
+  // Indexes for high performance queries & composite lookups
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
     CREATE INDEX IF NOT EXISTS idx_products_delete_flag ON products(delete_flag);
+    CREATE INDEX IF NOT EXISTS idx_products_composite ON products(category_id, is_available, delete_flag);
     CREATE INDEX IF NOT EXISTS idx_transactions_cashier ON transactions(cashier_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON transactions(created_at);
+    CREATE INDEX IF NOT EXISTS idx_transactions_date_status ON transactions(created_at, status);
     CREATE INDEX IF NOT EXISTS idx_transaction_items_trx ON transaction_items(transaction_id);
     CREATE INDEX IF NOT EXISTS idx_transaction_items_prod ON transaction_items(product_id);
   `);
@@ -102,7 +113,7 @@ function initDB() {
   // Seed default data
   seedData(db);
   
-  console.log('✅ Database initialized successfully');
+  console.log('✅ Database initialized successfully (SQLite WAL & Memory Optimization Active)');
 }
 
 function seedData(db) {

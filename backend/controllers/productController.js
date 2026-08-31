@@ -181,28 +181,19 @@ function saveAiDescription(req, res) {
   });
 }
 
-function getCategories(req, res) {
-  const db = getDB();
-  const categories = db.prepare('SELECT * FROM categories ORDER BY name').all();
-  res.json({ success: true, data: { categories } });
-}
+const {
+  getAllCategories: getCategories,
+  createCategory
+} = require('./categoryController');
 
-function createCategory(req, res) {
-  const db = getDB();
-  const { name } = req.body;
-
-  if (!name || !name.trim()) {
-    return res.status(400).json({ success: false, message: 'Nama kategori wajib diisi.' });
-  }
-
-  const existing = db.prepare('SELECT id FROM categories WHERE name = ?').get(name.trim());
-  if (existing) {
-    return res.status(409).json({ success: false, message: 'Kategori dengan nama tersebut sudah ada.' });
-  }
-
-  const result = db.prepare('INSERT INTO categories (name) VALUES (?)').run(name.trim());
-  const category = db.prepare('SELECT * FROM categories WHERE id = ?').get(result.lastInsertRowid);
-  res.status(201).json({ success: true, message: 'Kategori berhasil ditambahkan!', data: { category } });
-}
-
-module.exports = { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, generateDescription, saveAiDescription, getCategories, createCategory };
+module.exports = {
+  getAllProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  generateDescription,
+  saveAiDescription,
+  getCategories,
+  createCategory
+};

@@ -39,6 +39,23 @@ function getDashboardStats(req, res) {
     LIMIT 5
   `).all();
 
+  // Top selling categories (all time)
+  const topCategories = db.prepare(`
+    SELECT 
+      c.id,
+      c.name,
+      c.name as category_name,
+      COALESCE(SUM(ti.quantity), 0) as total_sold,
+      COALESCE(SUM(ti.subtotal), 0) as total_revenue
+    FROM transaction_items ti
+    JOIN products p ON ti.product_id = p.id
+    JOIN categories c ON p.category_id = c.id
+    JOIN transactions t ON ti.transaction_id = t.id
+    WHERE t.status = 'completed'
+    GROUP BY c.id, c.name
+    ORDER BY total_sold DESC
+  `).all();
+
   // Recent transactions
   const recentTransactions = db.prepare(`
     SELECT t.transaction_code, t.total_amount, t.created_at, u.name as cashier_name
@@ -72,6 +89,7 @@ function getDashboardStats(req, res) {
       },
       total_products: productCount.count,
       top_products: topProducts,
+      top_categories: topCategories,
       recent_transactions: recentTransactions,
       revenue_chart: revenueChart
     }
