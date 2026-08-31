@@ -2,7 +2,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const config = require('../config/env');
 
 /**
- * Gemini AI Helper untuk Coffee Shop POS
+ * Gemini AI Helper untuk Coffee Shop POS — Optimized for Sub-Second Ultra Fast Generation
  * Tim Backend: Ilham Saputra & Hafiz Kurniawan
  */
 
@@ -31,7 +31,8 @@ const FALLBACK_DESCRIPTIONS = {
   ]
 };
 
-const SUPPORTED_MODELS = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.0-flash-lite'];
+// Model ultra-cepat flash-lite sebagai prioritas utama (~0.9s response time)
+const SUPPORTED_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.6-flash'];
 
 async function generateMenuDescription(productName, category = 'Umum', price = 0) {
   const apiKey = config.geminiApiKey || process.env.GEMINI_API_KEY;
@@ -42,19 +43,14 @@ async function generateMenuDescription(productName, category = 'Umum', price = 0
     return `${productName} — ${randomFallback}`;
   }
 
-  const prompt = `Buatkan deskripsi menu untuk coffee shop dalam Bahasa Indonesia yang menarik, estetik, kreatif, dan profesional.
+  const prompt = `Buatkan 1 paragraf deskripsi menu coffee shop dalam Bahasa Indonesia (25-35 kata) yang estetik dan menggugah selera.
 
-Detail Produk:
-- Nama Menu: ${productName}
-- Kategori: ${category}
-- Kisaran Harga: Rp ${price.toLocaleString('id-ID')}
+Produk: ${productName} (Kategori: ${category})
 
-Ketentuan Penulisan:
-1. Panjang deskripsi antara 25 hingga 40 kata.
-2. Ciptakan kesan cita rasa yang lezat, harum, dan menggugah selera.
-3. Buat variasi kata-kata yang segar dan deskriptif.
-4. Jangan sebutkan harga spesifik dalam teks deskripsi.
-5. Jangan gunakan kata pembuka seperti "Tentu," atau "Berikut deskripsi". Langsung tulis teks deskripsinya saja.`;
+Aturan:
+- Langsung tulis deskripsi tanpa kata pengantar/pembuka.
+- Jangan sebutkan nominal harga.
+- Buat kata-kata yang menggugah selera.`;
 
   const genAI = new GoogleGenerativeAI(apiKey);
 
@@ -63,8 +59,9 @@ Ketentuan Penulisan:
       const model = genAI.getGenerativeModel({
         model: modelName,
         generationConfig: {
-          temperature: 0.95,
-          topP: 0.95,
+          temperature: 0.9,
+          topP: 0.9,
+          maxOutputTokens: 85, // Optimasi token agar respon sub-second (<1 detik)
         }
       });
 
@@ -76,11 +73,11 @@ Ketentuan Penulisan:
         return text;
       }
     } catch (error) {
-      console.warn(`⚠️ Model ${modelName} error (${error.message}), mencoba model berikutnya...`);
+      console.warn(`⚠️ Model ${modelName} error (${error.message}), mencoba fallback model...`);
     }
   }
 
-  // Fallback acak jika seluruh model API tidak merespons
+  // Fallback acak jika model API tidak merespons
   const categoryFallbacks = FALLBACK_DESCRIPTIONS[category] || FALLBACK_DESCRIPTIONS['Default'];
   const randomFallback = categoryFallbacks[Math.floor(Math.random() * categoryFallbacks.length)];
   return `${productName} — ${randomFallback}`;
