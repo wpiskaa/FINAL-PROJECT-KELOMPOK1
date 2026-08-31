@@ -15,7 +15,13 @@ const PORT = config.port;
 
 // Middleware
 app.use(cors({
-  origin: config.frontendUrl,
+  origin: (origin, callback) => {
+    // Allow requests with no origin or any localhost / 127.0.0.1 port
+    if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin) || /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, config.frontendUrl);
+  },
   credentials: true
 }));
 app.use(express.json());
