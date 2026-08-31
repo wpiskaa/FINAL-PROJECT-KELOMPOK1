@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
 import {
   Search, Plus, Coffee, Edit2, Trash2, Sparkles,
-  Package, ChevronRight, SlidersHorizontal
+  Package, ChevronRight, SlidersHorizontal, ChevronDown
 } from 'lucide-react';
 import ProductFormModal from '../components/ProductFormModal';
 
@@ -15,11 +15,33 @@ export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Filters
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('');
+  const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [showPriceFilter, setShowPriceFilter] = useState(false);
+
+  const priceRanges = [
+    { label: 'Di bawah Rp15.000', min: '', max: '15000' },
+    { label: 'Rp15.000 – Rp25.000', min: '15000', max: '25000' },
+    { label: 'Rp25.000 – Rp40.000', min: '25000', max: '40000' },
+    { label: 'Di atas Rp40.000', min: '40000', max: '' },
+  ];
+
+  function applyRange(range) {
+    setMinPrice(range.min);
+    setMaxPrice(range.max);
+    setShowPriceFilter(false);
+  }
+
+  function handlePriceInput(setter, maxDigits = 7) {
+  return (e) => {
+    const digitsOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, maxDigits);
+    setter(digitsOnly);
+  };
+  }
 
   // Modals & AI
   const [showModal, setShowModal] = useState(false);
@@ -71,13 +93,14 @@ export default function ProductsPage() {
   function openEdit(p) { setEditProduct(p); setShowModal(true); }
 
   const filteredProducts = products.filter(p => {
-    if (!maxPrice) return true;
-    return p.price <= parseFloat(maxPrice);
+    if (minPrice && p.price < parseFloat(minPrice)) return false;
+    if (maxPrice && p.price > parseFloat(maxPrice)) return false;
+    return true;
   });
 
   return (
     <div className="space-y-6 animate-fadeIn font-sans">
-      
+
       {/* Header Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -94,7 +117,7 @@ export default function ProductsPage() {
 
       {/* Farmaku Style Category Tabs & Search Bar */}
       <div className="space-y-3">
-        
+
         {/* Top Search & Price Filter Controls */}
         <div className="flex flex-wrap gap-3">
           <div className="relative flex-1 min-w-56">
@@ -109,16 +132,90 @@ export default function ProductsPage() {
             />
           </div>
 
-          {/* Max Price filter */}
-          <div className="relative w-44">
-            <SlidersHorizontal size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-coffee-400" />
-            <input
-              type="number"
-              placeholder="Maks. Harga (Rp)"
-              value={maxPrice}
-              onChange={e => setMaxPrice(e.target.value)}
-              className="input-field pl-9 text-xs bg-white shadow-2xs"
-            />
+          {/* Price Filter Dropdown Button */}
+          <div className="relative">
+          <button
+            onClick={() => setShowPriceFilter(v => !v)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold border max-w-[220px] transition-all h-full ${
+              minPrice || maxPrice
+                ? 'bg-coffee-800 text-white border-coffee-800 shadow-sm'
+                : 'bg-white text-coffee-700 border-[#EAE3D9] hover:bg-cream-100'
+            }`}
+          >
+            <SlidersHorizontal size={14} className="flex-shrink-0" />
+            <span className="truncate">
+              {minPrice || maxPrice
+                ? `${minPrice ? formatRupiah(minPrice) : 'Rp0'} - ${maxPrice ? formatRupiah(maxPrice) : '∞'}`
+                : 'Filter Harga'}
+            </span>
+            <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${showPriceFilter ? 'rotate-180' : ''}`} />
+          </button>
+
+            {showPriceFilter && (
+              <>
+                {/* Backdrop transparan buat nutup dropdown kalau klik di luar */}
+                <div className="fixed inset-0 z-10" onClick={() => setShowPriceFilter(false)} />
+
+                <div className="absolute right-0 mt-2 w-72 bg-white border border-[#EAE3D9] rounded-2xl shadow-card p-4 z-20 space-y-3">
+                  <p className="text-xs font-bold text-coffee-800">Rentang Harga Cepat</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {priceRanges.map((r, i) => (
+                      <button
+                        key={i}
+                        onClick={() => applyRange(r)}
+                        className={`text-[11px] font-semibold px-2.5 py-2 rounded-xl border text-left transition-all ${
+                          minPrice === r.min && maxPrice === r.max
+                            ? 'bg-coffee-800 text-white border-coffee-800'
+                            : 'border-[#EAE3D9] text-coffee-700 hover:bg-cream-100'
+                        }`}
+                      >
+                        {r.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="pt-2 border-t border-cream-200">
+                    <p className="text-xs font-bold text-coffee-800 mb-2">Atau Masukkan Manual (Rp)</p>
+                    <div className="flex items-center gap-2">
+                  <input
+                    id="min-price-input"
+                    type="number"
+                    min="0"
+                    placeholder="Min"
+                    value={minPrice}
+                    onChange={handlePriceInput(setMinPrice)}
+                    className="input-field text-xs bg-[#FAF8F5] py-2"
+                  />
+                  <span className="text-coffee-400 text-xs">–</span>
+                  <input
+                    id="max-price-input"
+                    type="number"
+                    min="0"
+                    placeholder="Maks"
+                    value={maxPrice}
+                    onChange={handlePriceInput(setMaxPrice)}
+                    className="input-field text-xs bg-[#FAF8F5] py-2"
+                  />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={() => { setMinPrice(''); setMaxPrice(''); }}
+                      className="flex-1 text-xs font-semibold text-coffee-600 hover:text-coffee-800 py-2"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      onClick={() => setShowPriceFilter(false)}
+                      className="flex-1 btn-primary text-xs py-2"
+                    >
+                      Terapkan
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
