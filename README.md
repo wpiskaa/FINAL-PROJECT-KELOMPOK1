@@ -37,7 +37,7 @@ Aplikasi web Point of Sale (POS) untuk coffee shop yang dilengkapi fitur **AI au
 | **Backend** | Node.js + Express.js |
 | **Database** | SQLite (better-sqlite3) |
 | **Auth** | JWT + bcryptjs |
-| **AI** | Google Gemini API (gemini-1.5-flash) |
+| **AI** | Google Gemini API (gemini-3.5-flash-lite) |
 | **Charts** | Recharts |
 | **Icons** | Lucide React |
 
