@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import { formatRupiah, formatDate } from '../utils/formatters';
-import { History, ChevronDown, ChevronUp, Calendar, Printer, Coffee, FileX } from 'lucide-react';
+import { History, ChevronDown, ChevronUp, Calendar, Printer, Coffee, FileX, Download } from 'lucide-react';
 
 export default function HistoryPage() {
   const [transactions, setTransactions] = useState([]);
@@ -21,6 +21,30 @@ export default function HistoryPage() {
 
   const totalRevenue = transactions.reduce((s, t) => s + t.total_amount, 0);
 
+  function handleExportCSV() {
+    if (transactions.length === 0) return;
+    const headers = ['Kode Transaksi', 'Kasir', 'Tanggal', 'Metode Pembayaran', 'Total Belanja (Rp)', 'Rincian Menu'];
+    const rows = transactions.map(t => {
+      const itemsStr = (t.items || []).map(i => `${i.product_name} (${i.quantity}x)`).join('; ');
+      return [
+        `"${t.transaction_code}"`,
+        `"${t.cashier_name}"`,
+        `"${formatDate(t.created_at)}"`,
+        `"${t.payment_method?.toUpperCase()}"`,
+        t.total_amount,
+        `"${itemsStr}"`
+      ].join(',');
+    });
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `laporan-penjualan-brewmate-${dateFilter || 'semua'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   return (
     <div className="space-y-6 animate-fadeIn font-sans w-full">
       
@@ -33,23 +57,36 @@ export default function HistoryPage() {
           </p>
         </div>
 
-        {/* Date Filter */}
-        <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-[#EAE3D9] shadow-2xs">
-          <Calendar size={16} className="text-coffee-500 ml-2" />
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={e => setDateFilter(e.target.value)}
-            className="input-field w-auto text-xs py-1.5 px-2 bg-transparent border-0"
-          />
-          {dateFilter && (
+        {/* Action Controls (Date Filter & Export CSV) */}
+        <div className="flex items-center gap-2">
+          {transactions.length > 0 && (
             <button
-              onClick={() => setDateFilter('')}
-              className="btn-secondary text-[11px] px-2.5 py-1"
+              onClick={handleExportCSV}
+              className="btn-secondary text-xs py-2 px-3 flex items-center gap-1.5 font-bold shadow-2xs text-[#4A2E1A] hover:bg-[#F5EFE4]"
+              title="Unduh Laporan Format CSV (Excel)"
             >
-              Reset
+              <Download size={14} />
+              <span>Export CSV</span>
             </button>
           )}
+
+          <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-[#EAE3D9] shadow-2xs">
+            <Calendar size={16} className="text-coffee-500 ml-2" />
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={e => setDateFilter(e.target.value)}
+              className="input-field w-auto text-xs py-1.5 px-2 bg-transparent border-0"
+            />
+            {dateFilter && (
+              <button
+                onClick={() => setDateFilter('')}
+                className="btn-secondary text-[11px] px-2.5 py-1"
+              >
+                Reset
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

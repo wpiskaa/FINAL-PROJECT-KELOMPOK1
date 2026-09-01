@@ -1,4 +1,6 @@
 const http = require('http');
+const { spawn } = require('child_process');
+const path = require('path');
 
 async function req(url, options = {}) {
   return new Promise((resolve, reject) => {
@@ -32,8 +34,30 @@ async function req(url, options = {}) {
   });
 }
 
+async function isServerRunning() {
+  try {
+    const res = await req('http://localhost:3000/health');
+    return res.status === 200;
+  } catch {
+    return false;
+  }
+}
+
 async function runE2ETest() {
   console.log('🧪 Starting Full E2E Test Suite for BrewMate POS...\n');
+  let serverProcess = null;
+
+  if (!(await isServerRunning())) {
+    console.log('⚡ Starting backend server for testing...');
+    serverProcess = spawn('node', ['app.js'], { cwd: __dirname, stdio: 'ignore' });
+    let attempts = 0;
+    while (attempts < 30) {
+      await new Promise(r => setTimeout(r, 400));
+      if (await isServerRunning()) break;
+      attempts++;
+    }
+  }
+
   let passed = 0;
   let total = 0;
 
@@ -161,6 +185,10 @@ async function runE2ETest() {
     console.log('======================================\n');
   } catch (err) {
     console.error('Test Suite Error:', err);
+  } finally {
+    if (serverProcess) {
+      serverProcess.kill();
+    }
   }
 }
 
