@@ -180,7 +180,10 @@ export default function ProductsPage() {
                         min="0"
                         placeholder="Min"
                         value={minPrice}
-                        onChange={e => setMinPrice(e.target.value)}
+                        onChange={e => {
+                          const val = e.target.value.slice(0, 6);
+                          setMinPrice(val);
+                        }}
                         className="input-field text-xs bg-[#FAF8F5] py-2"
                       />
                       <span className="text-coffee-400 text-xs">–</span>
@@ -190,7 +193,10 @@ export default function ProductsPage() {
                         min="0"
                         placeholder="Maks"
                         value={maxPrice}
-                        onChange={e => setMaxPrice(e.target.value)}
+                        onChange={e => {
+                          const val = e.target.value.slice(0, 6);
+                          setMaxPrice(val);
+                        }}
                         className="input-field text-xs bg-[#FAF8F5] py-2"
                       />
                     </div>
@@ -216,15 +222,18 @@ export default function ProductsPage() {
           </div>
 
           {/* Sort Dropdown */}
-          <select
-            value={sortOrder}
-            onChange={e => setSortOrder(e.target.value)}
-            className="input-field text-xs bg-white shadow-2xs w-auto py-2.5 px-3"
-          >
-            <option value="default">Urutan Default</option>
-            <option value="asc">Harga: Termurah</option>
-            <option value="desc">Harga: Termahal</option>
-          </select>
+          <div className="relative">
+            <select
+              value={sortOrder}
+              onChange={e => setSortOrder(e.target.value)}
+              className="appearance-none flex items-center gap-2 pl-4 pr-9 py-2.5 rounded-xl text-xs font-semibold border max-w-[220px] transition-all h-full bg-white text-coffee-700 border-[#EAE3D9] hover:bg-cream-100 cursor-pointer"
+            >
+              <option value="default">Urutan Default</option>
+              <option value="asc">Harga: Termurah</option>
+              <option value="desc">Harga: Termahal</option>
+            </select>
+            <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-coffee-700 flex-shrink-0" />
+          </div>
         </div>
 
         {/* Category Pills */}
