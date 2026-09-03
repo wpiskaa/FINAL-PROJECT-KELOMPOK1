@@ -22,6 +22,7 @@ export default function ProductsPage() {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [showPriceFilter, setShowPriceFilter] = useState(false);
+  const [sortOrder, setSortOrder] = useState('default'); // 'default' | 'asc' | 'desc'
 
   const priceRanges = [
     { label: 'Di bawah Rp15.000', min: '', max: '15000' },
@@ -34,13 +35,6 @@ export default function ProductsPage() {
     setMinPrice(range.min);
     setMaxPrice(range.max);
     setShowPriceFilter(false);
-  }
-
-  function handlePriceInput(setter, maxDigits = 7) {
-  return (e) => {
-    const digitsOnly = e.target.value.replace(/[^0-9]/g, '').slice(0, maxDigits);
-    setter(digitsOnly);
-  };
   }
 
   // Modals & AI
@@ -67,7 +61,6 @@ export default function ProductsPage() {
     setGeneratingId(product.id);
     const toastId = toast.loading(`🤖 Gemini AI sedang membuat deskripsi untuk "${product.name}"...`);
     try {
-      // Save directly on quick generate from catalog page
       const res = await api.post(`/products/${product.id}/generate-description`, { save: true });
       toast.success(`✨ Deskripsi AI disimpan! (${res.data.data.generation_time})`, { id: toastId });
       loadProducts();
@@ -98,6 +91,12 @@ export default function ProductsPage() {
     return true;
   });
 
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (sortOrder === 'asc') return a.price - b.price;
+    if (sortOrder === 'desc') return b.price - a.price;
+    return 0;
+  });
+
   return (
     <div className="space-y-6 animate-fadeIn font-sans">
 
@@ -115,7 +114,6 @@ export default function ProductsPage() {
         )}
       </div>
 
-      {/* Farmaku Style Category Tabs & Search Bar */}
       <div className="space-y-3">
 
         {/* Top Search & Price Filter Controls */}
@@ -134,26 +132,25 @@ export default function ProductsPage() {
 
           {/* Price Filter Dropdown Button */}
           <div className="relative">
-          <button
-            onClick={() => setShowPriceFilter(v => !v)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold border max-w-[220px] transition-all h-full ${
-              minPrice || maxPrice
-                ? 'bg-coffee-800 text-white border-coffee-800 shadow-sm'
-                : 'bg-white text-coffee-700 border-[#EAE3D9] hover:bg-cream-100'
-            }`}
-          >
-            <SlidersHorizontal size={14} className="flex-shrink-0" />
-            <span className="truncate">
-              {minPrice || maxPrice
-                ? `${minPrice ? formatRupiah(minPrice) : 'Rp0'} - ${maxPrice ? formatRupiah(maxPrice) : '∞'}`
-                : 'Filter Harga'}
-            </span>
-            <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${showPriceFilter ? 'rotate-180' : ''}`} />
-          </button>
+            <button
+              onClick={() => setShowPriceFilter(v => !v)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold border max-w-[220px] transition-all h-full ${
+                minPrice || maxPrice
+                  ? 'bg-coffee-800 text-white border-coffee-800 shadow-sm'
+                  : 'bg-white text-coffee-700 border-[#EAE3D9] hover:bg-cream-100'
+              }`}
+            >
+              <SlidersHorizontal size={14} className="flex-shrink-0" />
+              <span className="truncate">
+                {minPrice || maxPrice
+                  ? `${minPrice ? formatRupiah(minPrice) : 'Rp0'} - ${maxPrice ? formatRupiah(maxPrice) : '∞'}`
+                  : 'Filter Harga'}
+              </span>
+              <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${showPriceFilter ? 'rotate-180' : ''}`} />
+            </button>
 
             {showPriceFilter && (
               <>
-                {/* Backdrop transparan buat nutup dropdown kalau klik di luar */}
                 <div className="fixed inset-0 z-10" onClick={() => setShowPriceFilter(false)} />
 
                 <div className="absolute right-0 mt-2 w-72 bg-white border border-[#EAE3D9] rounded-2xl shadow-card p-4 z-20 space-y-3">
@@ -177,25 +174,25 @@ export default function ProductsPage() {
                   <div className="pt-2 border-t border-cream-200">
                     <p className="text-xs font-bold text-coffee-800 mb-2">Atau Masukkan Manual (Rp)</p>
                     <div className="flex items-center gap-2">
-                  <input
-                    id="min-price-input"
-                    type="number"
-                    min="0"
-                    placeholder="Min"
-                    value={minPrice}
-                    onChange={handlePriceInput(setMinPrice)}
-                    className="input-field text-xs bg-[#FAF8F5] py-2"
-                  />
-                  <span className="text-coffee-400 text-xs">–</span>
-                  <input
-                    id="max-price-input"
-                    type="number"
-                    min="0"
-                    placeholder="Maks"
-                    value={maxPrice}
-                    onChange={handlePriceInput(setMaxPrice)}
-                    className="input-field text-xs bg-[#FAF8F5] py-2"
-                  />
+                      <input
+                        id="min-price-input"
+                        type="number"
+                        min="0"
+                        placeholder="Min"
+                        value={minPrice}
+                        onChange={e => setMinPrice(e.target.value)}
+                        className="input-field text-xs bg-[#FAF8F5] py-2"
+                      />
+                      <span className="text-coffee-400 text-xs">–</span>
+                      <input
+                        id="max-price-input"
+                        type="number"
+                        min="0"
+                        placeholder="Maks"
+                        value={maxPrice}
+                        onChange={e => setMaxPrice(e.target.value)}
+                        className="input-field text-xs bg-[#FAF8F5] py-2"
+                      />
                     </div>
                   </div>
 
@@ -217,9 +214,20 @@ export default function ProductsPage() {
               </>
             )}
           </div>
+
+          {/* Sort Dropdown */}
+          <select
+            value={sortOrder}
+            onChange={e => setSortOrder(e.target.value)}
+            className="input-field text-xs bg-white shadow-2xs w-auto py-2.5 px-3"
+          >
+            <option value="default">Urutan Default</option>
+            <option value="asc">Harga: Termurah</option>
+            <option value="desc">Harga: Termahal</option>
+          </select>
         </div>
 
-        {/* Category Pills (Farmaku style horizontal tabs) */}
+        {/* Category Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1">
           <button
             onClick={() => setFilterCat('')}
@@ -248,12 +256,12 @@ export default function ProductsPage() {
 
       </div>
 
-      {/* Product Grid (Farmaku Clean White Cards) */}
+      {/* Product Grid */}
       {loading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => <div key={i} className="skeleton h-60 rounded-3xl" />)}
         </div>
-      ) : filteredProducts.length === 0 ? (
+      ) : sortedProducts.length === 0 ? (
         <div className="card text-center py-16 bg-white rounded-3xl">
           <Package size={40} className="text-coffee-300 mx-auto mb-3" />
           <p className="text-coffee-600 font-medium">Tidak ada produk ditemukan</p>
@@ -265,13 +273,12 @@ export default function ProductsPage() {
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredProducts.map(product => (
+          {sortedProducts.map(product => (
             <div
               key={product.id}
               className="bg-white border border-[#EAE3D9] rounded-3xl p-5 shadow-soft hover:shadow-card transition-all duration-200 flex flex-col justify-between group"
             >
               <div>
-                {/* Header Badge */}
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <span className="badge bg-cream-200 text-coffee-800 text-[11px] font-semibold">
                     {product.category_name || 'Umum'}
@@ -281,7 +288,6 @@ export default function ProductsPage() {
                   </span>
                 </div>
 
-                {/* Coffee Icon & Product Name */}
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-[#F5EFE6] rounded-2xl flex items-center justify-center flex-shrink-0 border border-[#E2D6C5]">
                     <Coffee size={20} className="text-coffee-800" />
@@ -292,7 +298,6 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
-                {/* AI Description / Manual preview */}
                 {product.ai_description ? (
                   <div className="bg-[#FAF7F2] border border-[#EBE4D8] rounded-2xl p-3 my-3">
                     <div className="flex items-center gap-1 mb-1 text-[10px] font-bold text-coffee-700 uppercase tracking-wider">
@@ -308,7 +313,6 @@ export default function ProductsPage() {
                 )}
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-2 pt-2 border-t border-cream-200">
                 <Link
                   to={`/products/${product.id}`}
@@ -356,7 +360,6 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* Modal Form */}
       {showModal && (
         <ProductFormModal
           product={editProduct}
