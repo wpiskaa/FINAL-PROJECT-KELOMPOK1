@@ -47,7 +47,17 @@ export default function HistoryPage() {
 
   return (
     <div className="space-y-6 animate-fadeIn font-sans w-full">
-      
+
+      {/* Print-only styling: saat print, cuma struk yang sedang di-expand (#receipt-area) yang muncul */}
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          #receipt-area, #receipt-area * { visibility: visible; }
+          #receipt-area { position: absolute; top: 0; left: 0; width: 100%; }
+          .no-print { display: none !important; }
+        }
+      `}</style>
+
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -155,7 +165,21 @@ export default function HistoryPage() {
 
               {/* Expanded Item Details */}
               {expandedId === t.id && (
-                <div className="px-5 pb-5 border-t border-[#F0E9DF] pt-4 bg-[#FAF7F2] animate-fadeIn space-y-3">
+                <div
+                  id="receipt-area"
+                  className="px-5 pb-5 border-t border-[#F0E9DF] pt-4 bg-[#FAF7F2] animate-fadeIn space-y-3"
+                >
+                  {/* Header struk khusus untuk mode print, supaya kode transaksi & tanggal tetap ikut tercetak
+                      walaupun baris accordion di atas (#receipt-area) tersembunyi saat print */}
+                  <div className="hidden print:block text-center pb-2 border-b border-dashed border-cream-300">
+                    <p className="font-bold text-coffee-950 text-sm">BrewMate Coffee Shop</p>
+                    <p className="text-coffee-500 text-[11px] mt-0.5">Struk Cetak Ulang</p>
+                    <p className="text-coffee-600 text-xs font-mono mt-1">{t.transaction_code}</p>
+                    <p className="text-coffee-400 text-[11px] mt-0.5">
+                      {formatDate(t.created_at)} · Kasir: {t.cashier_name}
+                    </p>
+                  </div>
+
                   <p className="text-xs font-bold text-coffee-900 border-b border-cream-300 pb-1.5">Detail Pesanan</p>
                   <div className="space-y-1.5">
                     {t.items?.map((item, i) => (
@@ -165,6 +189,14 @@ export default function HistoryPage() {
                       </div>
                     ))}
                     <div className="border-t border-cream-300 mt-2 pt-2 space-y-1 text-xs">
+                      <div className="flex justify-between font-bold text-coffee-950">
+                        <span>Total Belanja</span>
+                        <span>{formatRupiah(t.total_amount)}</span>
+                      </div>
+                      <div className="flex justify-between text-coffee-700">
+                        <span>Metode Pembayaran</span>
+                        <span className="uppercase font-semibold">{t.payment_method}</span>
+                      </div>
                       <div className="flex justify-between text-coffee-700">
                         <span>Nominal Bayar</span>
                         <span>{formatRupiah(t.payment_amount)}</span>
@@ -182,11 +214,15 @@ export default function HistoryPage() {
                     ) : <span />}
                     <button
                       onClick={() => window.print()}
-                      className="btn-secondary text-[11px] py-1.5 px-3 flex items-center gap-1 font-semibold"
+                      className="no-print btn-secondary text-[11px] py-1.5 px-3 flex items-center gap-1 font-semibold"
                     >
                       <Printer size={12} /> Cetak Struk
                     </button>
                   </div>
+
+                  <p className="hidden print:block text-center text-[10px] text-coffee-400 pt-2 border-t border-dashed border-cream-300">
+                    Terima kasih sudah ngopi di BrewMate ☕
+                  </p>
                 </div>
               )}
             </div>
